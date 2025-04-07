@@ -1,0 +1,5 @@
+package com.example.kulturaquest
+
+import io.flutter.embedding.android.FlutterActivity
+
+class MainActivity : FlutterActivity()
