@@ -9,6 +9,9 @@ environment:
 dependencies:
   flutter:
     sdk: flutter
+  firebase_core: ^3.13.0
+  firebase_auth: ^5.5.2
+  js: ^0.7.1 # dun to sa mahabang lintik na error pag nirurunhaha ito lang pala
 
 dev_dependencies:
   flutter_test:
@@ -24,8 +27,11 @@ flutter:
     - assets/images/food.jpg
     - assets/videos/video1.mp4
 
-flutter_native_splash:
+flutter_native_splash:  ## U cant see this on dart code, since this is here lang
   color: "#ffffff"
   image: assets/images/k_logo.png
   android: true
   ios: true
+
+
+

@@ -1,7 +1,28 @@
 import 'package:flutter/material.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import 'sign_in_screen.dart';
+import 'main_screen.dart';
 
 class LanguageSelectionScreen extends StatelessWidget {
   const LanguageSelectionScreen({super.key});
+
+  void _handleLanguageSelection(BuildContext context) {
+    final user = FirebaseAuth.instance.currentUser;
+
+    if (user != null) {
+      // If the user is already signed in, go straight to the main app screen
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(builder: (_) => const MainScreen()),
+      );
+    } else {
+      // If not signed in, direct to sign-in screen
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(builder: (_) => const SignInScreen()),
+      );
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -12,31 +33,27 @@ class LanguageSelectionScreen extends StatelessWidget {
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              // Logo image
-              Image.asset(
-                'assets/images/my_logo.png',
-                height: 120, // Adjust as needed
-              ),
+              // KulturaQuest Logo
+              Image.asset('assets/images/my_logo.png', height: 120),
               const SizedBox(height: 20),
-              // Welcome text
+
+              // Welcome Message
               const Text(
                 'Welcome to KulturaQuest',
                 style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
               ),
               const SizedBox(height: 40),
-              // English button
+
+              // English Button
               ElevatedButton(
-                onPressed: () {
-                  Navigator.pushReplacementNamed(context, '/main');
-                },
+                onPressed: () => _handleLanguageSelection(context),
                 child: const Text('English'),
               ),
               const SizedBox(height: 10),
-              // Tagalog button
+
+              // Tagalog Button
               ElevatedButton(
-                onPressed: () {
-                  Navigator.pushReplacementNamed(context, '/main');
-                },
+                onPressed: () => _handleLanguageSelection(context),
                 child: const Text('Tagalog'),
               ),
             ],
