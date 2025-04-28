@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'president_detail_screen.dart';
+import 'quiz_questions_screen.dart'; // Make sure this is imported!
 
 class CategoryDetailScreen extends StatelessWidget {
   final String category;
@@ -6,74 +8,119 @@ class CategoryDetailScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // Check if the selected category is "Cuisine"
-    if (category == "Cuisine") {
-      // Display a single large representative image for Cuisine
-      return Scaffold(
-        appBar: AppBar(title: Text(category)),
-        body: Center(
-          child: Image.asset(
-            'assets/images/food.jpg', // Use your representative image here
-            fit: BoxFit.cover,
-          ),
-        ),
-      );
-    } else {
-      // For other categories, display a grid of items
-      List<Map<String, String>> items = [];
-      switch (category) {
-        case "Philippine Presidents":
-          items = [
-            {
-              "name": "Emilio Aguinaldo",
-              "image": "assets/images/aguinaldo.png",
-            },
-            {"name": "Manuel L. Quezon", "image": "assets/images/quezon.png"},
-            {"name": "Ramon Magsaysay", "image": "assets/images/magsaysay.png"},
-            {"name": "Ferdinand Marcos", "image": "assets/images/marcos.png"},
-            {"name": "Corazon Aquino", "image": "assets/images/aquino.png"},
-          ];
-          break;
-        // You can add similar cases for "Heroes", "Architecture", etc.
-        default:
-          items = [];
-      }
+    List<Map<String, String>> items = [];
 
-      return Scaffold(
-        appBar: AppBar(title: Text(category)),
-        body: GridView.builder(
-          padding: const EdgeInsets.all(16),
-          gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-            crossAxisCount: 2,
-            childAspectRatio: 3 / 2,
-            crossAxisSpacing: 16,
-            mainAxisSpacing: 16,
-          ),
-          itemCount: items.length,
-          itemBuilder: (context, index) {
-            final item = items[index];
-            return Card(
-              elevation: 4,
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
+    if (category == 'Presidents') {
+      items = [
+        {'name': 'Emilio Aguinaldo', 'image': 'assets/images/emilio.jpg'},
+        {'name': 'Manuel L. Quezon', 'image': 'assets/images/quezon.jpg'},
+        {'name': 'Ramon Magsaysay', 'image': 'assets/images/magsaysay.jpg'},
+        {'name': 'Ferdinand Marcos', 'image': 'assets/images/fmarcos.jpg'},
+        {'name': 'Corazon Aquino', 'image': 'assets/images/corazon.jpg'},
+      ];
+    }
+
+    return Scaffold(
+      appBar: AppBar(title: Text(category)),
+      body:
+          items.isEmpty
+              ? const Center(child: Text('No data available yet!'))
+              : Column(
                 children: [
-                  Image.asset(
-                    item["image"] ?? "assets/images/placeholder.png",
-                    height: 60,
-                    fit: BoxFit.contain,
+                  Expanded(
+                    child: GridView.builder(
+                      padding: const EdgeInsets.all(16),
+                      gridDelegate:
+                          const SliverGridDelegateWithFixedCrossAxisCount(
+                            crossAxisCount: 2,
+                            childAspectRatio: 3 / 2,
+                            crossAxisSpacing: 16,
+                            mainAxisSpacing: 16,
+                          ),
+                      itemCount: items.length,
+                      itemBuilder: (context, index) {
+                        final item = items[index];
+                        return InkWell(
+                          onTap: () {
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder:
+                                    (context) => PresidentDetailScreen(
+                                      name: item['name']!,
+                                      imagePath: item['image']!,
+                                    ),
+                              ),
+                            );
+                          },
+                          child: Card(
+                            elevation: 4,
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(8),
+                            ),
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.stretch,
+                              children: [
+                                Expanded(
+                                  child: ClipRRect(
+                                    borderRadius: const BorderRadius.vertical(
+                                      top: Radius.circular(8),
+                                    ),
+                                    child: Image.asset(
+                                      item['image']!,
+                                      fit:
+                                          BoxFit
+                                              .cover, // ✅ fill the box properly
+                                      alignment:
+                                          Alignment
+                                              .topCenter, // ✅ focus on top (face area)
+                                    ),
+                                  ),
+                                ),
+                                const SizedBox(height: 8),
+                                Padding(
+                                  padding: const EdgeInsets.all(8.0),
+                                  child: Text(
+                                    item['name'] ?? '',
+                                    textAlign: TextAlign.center,
+                                    style: const TextStyle(
+                                      fontWeight: FontWeight.bold,
+                                      fontSize: 16,
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        );
+                      },
+                    ),
                   ),
-                  const SizedBox(height: 8),
-                  Text(
-                    item["name"] ?? "",
-                    textAlign: TextAlign.center,
-                    style: const TextStyle(fontWeight: FontWeight.bold),
+                  Padding(
+                    padding: const EdgeInsets.all(16),
+                    child: ElevatedButton(
+                      onPressed: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => const QuizQuestionsScreen(),
+                          ),
+                        );
+                      },
+                      style: ElevatedButton.styleFrom(
+                        minimumSize: const Size(double.infinity, 50),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                      ),
+                      child: const Text(
+                        "LET'S START",
+                        style: TextStyle(fontSize: 18),
+                      ),
+                    ),
                   ),
                 ],
               ),
-            );
-          },
-        ),
-      );
-    }
+    );
   }
 }

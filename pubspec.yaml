@@ -11,6 +11,8 @@ dependencies:
     sdk: flutter
   firebase_core: ^3.13.0
   firebase_auth: ^5.5.2
+  cloud_firestore: ^5.5.0
+  flutter_svg: ^2.0.7 #For philippines_map.svg
   js: ^0.7.1 # dun to sa mahabang lintik na error pag nirurunhaha ito lang pala
 
 dev_dependencies:
@@ -23,15 +25,35 @@ flutter:
   uses-material-design: true
   assets:
     - assets/images/photo1.png
-    - assets/images/k_logo.png
     - assets/images/food.jpg
     - assets/videos/video1.mp4
+    - assets/images/philmap.svg
+    - assets/images/emilio.jpg
+    - assets/images/16pres.jpg
+    - assets/images/heroes.jpg
+    - assets/images/history.jpg
+    - assets/images/trad.jpg
+    - assets/images/quezon.jpg
+    - assets/images/magsaysay.jpg
+    - assets/images/fmarcos.jpg
+    - assets/images/corazon.jpg
+    - assets/images/kul.png
+
+
+
+
 
 flutter_native_splash:  ## U cant see this on dart code, since this is here lang
   color: "#ffffff"
-  image: assets/images/k_logo.png
+  image: assets/images/kul.png
   android: true
   ios: true
+
+flutter_icons:
+android: true
+ios: true
+image_path: assets/images/kul.png
+
 
 
 

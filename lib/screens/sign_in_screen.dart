@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import 'main_screen.dart'; // or whatever screen after login
-import 'forgot_password_screen.dart'; // <-- Make sure this file exists
+import 'main_screen.dart';
+import 'forgot_password_screen.dart';
 
 class SignInScreen extends StatefulWidget {
   const SignInScreen({super.key});
@@ -54,7 +54,7 @@ class _SignInScreenState extends State<SignInScreen> {
             const SizedBox(height: 20),
             ElevatedButton(onPressed: _signIn, child: const Text('Sign In')),
 
-            // 👉 Forgot Password Button
+            //  Forgot Password Button
             TextButton(
               onPressed: () {
                 Navigator.push(
@@ -67,7 +67,7 @@ class _SignInScreenState extends State<SignInScreen> {
               child: const Text('Forgot Password?'),
             ),
 
-            // 👉 Sign Up Redirect
+            //  Sign Up Redirect
             TextButton(
               onPressed: () {
                 Navigator.pushNamed(context, '/signup');

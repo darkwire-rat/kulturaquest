@@ -34,7 +34,7 @@ class LanguageSelectionScreen extends StatelessWidget {
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
               // KulturaQuest Logo
-              Image.asset('assets/images/my_logo.png', height: 120),
+              Image.asset('assets/images/kul.png', height: 120),
               const SizedBox(height: 20),
 
               // Welcome Message
