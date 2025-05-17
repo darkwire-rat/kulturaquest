@@ -41,19 +41,14 @@ class LuzonScreen extends StatelessWidget {
                       fit: StackFit.expand,
                       children: [
                         // Background image
-                        Image.network(
-                          'https://i.imgur.com/4OlVYlA.jpg',
+                        Image.asset(
+                          'assets/images/heroes.jpg',
                           fit: BoxFit.cover,
                           errorBuilder: (context, error, stackTrace) {
-                            // Fallback gradient if image fails to load
-                            return Container(
-                              decoration: BoxDecoration(
-                                gradient: LinearGradient(
-                                  colors: [Colors.indigo[800]!, Colors.blue[500]!],
-                                  begin: Alignment.topLeft,
-                                  end: Alignment.bottomRight,
-                                ),
-                              ),
+                            // Fallback to another local image if the first one fails
+                            return Image.asset(
+                              'assets/images/taal_volcano.jpg',
+                              fit: BoxFit.cover,
                             );
                           },
                         ),
@@ -128,7 +123,7 @@ class LuzonScreen extends StatelessWidget {
                   _buildPersonalities(),
                   const SizedBox(height: 24),
                   // Cultural Highlights
-                  _buildCulturalHighlights(),
+                  _buildCulturalHighlights(context),
                   const SizedBox(height: 24),
                   // Fun Facts
                   Padding(
@@ -391,98 +386,312 @@ class LuzonScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildCulturalHighlights() {
+  Widget _buildCulturalHighlights(BuildContext context) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
+        // Cultural Dances Section
         Padding(
           padding: const EdgeInsets.symmetric(horizontal: 16),
-          child: Text('Cultural Highlights', style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
+          child: Text('Cultural Dances of Luzon', 
+              style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
         ),
         const SizedBox(height: 16),
-        Container(
-          height: 260,
+        SizedBox(
+          height: 320,
           child: ListView(
             scrollDirection: Axis.horizontal,
             padding: const EdgeInsets.symmetric(horizontal: 8),
             children: [
-              // Rice Terraces
-              CulturalHighlightContent(
-                title: 'Banaue Rice Terraces',
-                description: 'Ancient engineering marvel carved into mountains by indigenous people over 2,000 years ago.',
-                imageUrl: 'https://i.imgur.com/4OlVYlA.jpg', // Placeholder image
-                linkUrl: 'https://whc.unesco.org/en/list/722',
-                linkLabel: 'UNESCO World Heritage',
+              // Binasuan Dance
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 8.0),
+                child: SizedBox(
+                  width: 220,
+                  child: FlipCard(
+                    direction: FlipDirection.HORIZONTAL,
+                    front: _buildCardFront(
+                      imagePath: 'assets/culture/binasuan.jpg',
+                      title: 'Binasuan',
+                    ),
+                    back: _buildCardBack(
+                      title: 'Binasuan',
+                      description: 'A lively dance from Pangasinan performed with drinking glasses filled with rice wine balanced on the head and hands.',
+                      learnMoreUrl: 'https://ncca.gov.ph/about-culture-and-arts/culture-profile/phil-folk-dance/binansuan/',
+                    ),
+                  ),
+                ),
               ),
-              // Taal Volcano
-              Builder(
-                builder: (galleryContext) => CulturalHighlightContent(
-                  title: 'Taal Volcano',
-                  description: 'One of the most active volcanoes in the Philippines, located on Luzon island.',
-                  imageUrl: 'https://i.imgur.com/4OlVYlA.jpg', // Placeholder image
-                  customContent: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      const Text('Gallery', style: TextStyle(fontWeight: FontWeight.bold)),
-                      const SizedBox(height: 8),
-                      Row(
-                        children: List.generate(
-                          3,
-                          (i) => Padding(
-                            padding: const EdgeInsets.only(right: 8),
-                            child: GestureDetector(
-                              onTap: () {
-                                showDialog(
-                                  context: galleryContext,
-                                  builder: (BuildContext dialogContext) => Dialog(
-                                    backgroundColor: Colors.transparent,
-                                    insetPadding: const EdgeInsets.all(8),
-                                    child: TaalGalleryViewer(initialIndex: i),
-                                  ),
-                                );
-                              },
-                              child: ClipRRect(
-                                borderRadius: const BorderRadius.all(Radius.circular(8)),
-                                child: Image.network(
-                                  'https://i.imgur.com/4OlVYlA.jpg', // Placeholder image
-                                  width: 120,
-                                  height: 80,
-                                  fit: BoxFit.cover,
-                                ),
-                              ),
-                            ),
-                          ),
-                        ),
-                      ),
-                      const SizedBox(height: 10),
-                      TextButton.icon(
-                        icon: const Icon(Icons.link, color: Colors.amber),
-                        label: const Text('Learn more (UNESCO)', style: TextStyle(color: Colors.amber)),
-                        onPressed: () async {
-                          final url = Uri.parse('https://whc.unesco.org/en/tentativelists/6714');
-                          if (await canLaunchUrl(url)) {
-                            await launchUrl(url, mode: LaunchMode.externalApplication);
-                          }
-                        },
-                      ),
-                      TextButton.icon(
-                        icon: const Icon(Icons.play_circle_outline, color: Colors.amber),
-                        label: const Text('Watch Taal Volcano Video', style: TextStyle(color: Colors.amber)),
-                        onPressed: () async {
-                          final url = Uri.parse('https://www.youtube.com/watch?v=x90kwdBK6pA');
-                          if (await canLaunchUrl(url)) {
-                            await launchUrl(url, mode: LaunchMode.externalApplication);
-                          }
-                        },
-                      ),
-                    ],
+              // Pandanggo sa Ilaw Dance
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 8.0),
+                child: SizedBox(
+                  width: 220,
+                  child: FlipCard(
+                    direction: FlipDirection.HORIZONTAL,
+                    front: _buildCardFront(
+                      imagePath: 'assets/culture/pandanggo.jpg',
+                      title: 'Pandanggo sa Ilaw',
+                    ),
+                    back: _buildCardBack(
+                      title: 'Pandanggo sa Ilaw',
+                      description: 'A graceful dance from Mindoro that involves balancing oil lamps on the head and hands while dancing to waltz music.',
+                      learnMoreUrl: 'https://ncca.gov.ph/about-culture-and-arts/culture-profile/phil-folk-dance/pandanggo-sa-ilaw/',
+                    ),
+                  ),
+                ),
+              ),
+              // Tayaw Dance
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 8.0),
+                child: SizedBox(
+                  width: 220,
+                  child: FlipCard(
+                    direction: FlipDirection.HORIZONTAL,
+                    front: _buildCardFront(
+                      imagePath: 'assets/culture/tayaw.jpg',
+                      title: 'Tayaw',
+                    ),
+                    back: _buildCardBack(
+                      title: 'Tayaw',
+                      description: 'A traditional dance from the Cordillera region, often performed during celebrations and rituals.',
+                      learnMoreUrl: 'https://ncca.gov.ph/about-culture-and-arts/culture-profile/phil-folk-dance/cordillera-dances/',
+                    ),
                   ),
                 ),
               ),
             ],
           ),
         ),
+
+        // Taal Volcano Section
+        const SizedBox(height: 32),
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 16),
+          child: Text('Taal Volcano: Natural Wonder of Luzon', 
+              style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
+        ),
+        const SizedBox(height: 16),
+        Card(
+          margin: const EdgeInsets.symmetric(horizontal: 16),
+          clipBehavior: Clip.antiAlias,
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+          elevation: 4,
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              // Taal Volcano Image
+              GestureDetector(
+                onTap: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (buildContext) => TaalGalleryViewer(initialIndex: 0),
+                    ),
+                  );
+                },
+                child: Stack(
+                  children: [
+                    // Image
+                    Image.asset(
+                      'assets/images/taal_volcano.jpg',
+                      height: 200,
+                      width: double.infinity,
+                      fit: BoxFit.cover,
+                    ),
+                    // Gallery indicator overlay
+                    Positioned(
+                      right: 16,
+                      bottom: 16,
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                        decoration: BoxDecoration(
+                          color: Colors.black.withOpacity(0.7),
+                          borderRadius: BorderRadius.circular(16),
+                        ),
+                        child: Row(
+                          children: const [
+                            Icon(Icons.photo_library, color: Colors.white, size: 16),
+                            SizedBox(width: 4),
+                            Text('Gallery (7)', style: TextStyle(color: Colors.white, fontSize: 12)),
+                          ],
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              // Volcano info with longitude & latitude
+              Padding(
+                padding: const EdgeInsets.all(16),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const Text(
+                      'Taal Volcano',
+                      style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+                    ),
+                    const SizedBox(height: 8),
+                    const Text(
+                      'One of the most active volcanoes in the Philippines, located in Batangas province on Luzon island.',
+                      style: TextStyle(fontSize: 14),
+                    ),
+                    const SizedBox(height: 16),
+                    // Location info with coordinates
+                    Container(
+                      padding: const EdgeInsets.all(12),
+                      decoration: BoxDecoration(
+                        color: Colors.blue.withOpacity(0.1),
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Row(
+                            children: const [
+                              Icon(Icons.location_on, size: 18, color: Colors.red),
+                              SizedBox(width: 8),
+                              Text('Location:', style: TextStyle(fontWeight: FontWeight.bold)),
+                            ],
+                          ),
+                          const SizedBox(height: 4),
+                          const Padding(
+                            padding: EdgeInsets.only(left: 26),
+                            child: Text('Talisay, Batangas, Philippines'),
+                          ),
+                          const SizedBox(height: 8),
+                          Row(
+                            children: const [
+                              Icon(Icons.explore, size: 18, color: Colors.blue),
+                              SizedBox(width: 8),
+                              Text('Coordinates:', style: TextStyle(fontWeight: FontWeight.bold)),
+                            ],
+                          ),
+                          const SizedBox(height: 4),
+                          const Padding(
+                            padding: EdgeInsets.only(left: 26),
+                            child: Text('14.0111° N, 120.9977° E'),
+                          ),
+                        ],
+                      ),
+                    ),
+                    const SizedBox(height: 16),
+                    // View Gallery Button
+                    SizedBox(
+                      width: double.infinity,
+                      child: ElevatedButton.icon(
+                        icon: const Icon(Icons.photo_library),
+                        label: const Text('View Full Gallery'),
+                        style: ElevatedButton.styleFrom(
+                          padding: const EdgeInsets.symmetric(vertical: 12),
+                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                          backgroundColor: Colors.blue,
+                        ),
+                        onPressed: () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (buildContext) => TaalGalleryViewer(),
+                            ),
+                          );
+                        },
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+        ),
       ],
+    );
+  }
+
+  // Helper method to build the front of flip cards
+  Widget _buildCardFront({required String imagePath, required String title}) {
+    return Card(
+      elevation: 4,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+      child: Container(
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(12),
+          image: DecorationImage(
+            image: AssetImage(imagePath),
+            fit: BoxFit.cover,
+          ),
+        ),
+        child: Container(
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(12),
+            gradient: LinearGradient(
+              begin: Alignment.topCenter,
+              end: Alignment.bottomCenter,
+              colors: [
+                Colors.transparent,
+                Colors.black.withOpacity(0.7),
+              ],
+            ),
+          ),
+          child: Align(
+            alignment: Alignment.bottomLeft,
+            child: Padding(
+              padding: const EdgeInsets.all(16.0),
+              child: Text(
+                title,
+                style: const TextStyle(
+                  color: Colors.white,
+                  fontSize: 20,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  // Helper method to build the back of flip cards
+  Widget _buildCardBack({
+    required String title,
+    required String description,
+    required String learnMoreUrl,
+  }) {
+    return Card(
+      elevation: 4,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+      child: Padding(
+        padding: const EdgeInsets.all(16.0),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              title,
+              style: const TextStyle(
+                fontSize: 18,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+            const SizedBox(height: 8),
+            Expanded(
+              child: Text(
+                description,
+                style: const TextStyle(fontSize: 14),
+              ),
+            ),
+            TextButton.icon(
+              icon: const Icon(Icons.info_outline, size: 16, color: Colors.blue),
+              label: const Text('Learn More', style: TextStyle(color: Colors.blue)),
+              onPressed: () async {
+                final url = Uri.parse(learnMoreUrl);
+                if (await canLaunchUrl(url)) {
+                  await launchUrl(url, mode: LaunchMode.externalApplication);
+                }
+              },
+            ),
+          ],
+        ),
+      ),
     );
   }
 
