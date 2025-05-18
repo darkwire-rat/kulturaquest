@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import 'language_selection_screen.dart'; // Import this if you're navigating back there
+import 'language_selection_screen.dart';
+import 'settings_screen.dart';
+import '../services/audio_service.dart';
 
 class ProfileTab extends StatelessWidget {
   const ProfileTab({super.key});
@@ -42,12 +44,14 @@ class ProfileTab extends StatelessWidget {
                       child: Column(
                         mainAxisSize: MainAxisSize.min,
                         children: [
+                          // Profile photo
                           CircleAvatar(
-                            radius: 40,
+                            radius: 50,
                             backgroundColor: Colors.blue[100],
-                            child: Icon(Icons.person, size: 50, color: Colors.blue[700]),
+                            child: Icon(Icons.person, size: 60, color: Colors.blue[700]),
                           ),
-                          const SizedBox(height: 18),
+                          const SizedBox(height: 20),
+                          // User email
                           Text(
                             user.email ?? 'No email',
                             style: const TextStyle(
@@ -57,6 +61,31 @@ class ProfileTab extends StatelessWidget {
                             ),
                           ),
                           const SizedBox(height: 30),
+                          // Settings button
+                          SizedBox(
+                            width: double.infinity,
+                            child: ElevatedButton.icon(
+                              icon: const Icon(Icons.settings),
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: Colors.green,
+                                foregroundColor: Colors.white,
+                                padding: const EdgeInsets.symmetric(vertical: 14),
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(12),
+                                ),
+                              ),
+                              onPressed: () {
+                                // Navigate to settings screen
+                                Navigator.push(
+                                  context,
+                                  MaterialPageRoute(builder: (context) => const SettingsScreen()),
+                                );
+                              },
+                              label: const Text('Settings', style: TextStyle(fontSize: 16)),
+                            ),
+                          ),
+                          const SizedBox(height: 12),
+                          // Reset Password button
                           SizedBox(
                             width: double.infinity,
                             child: ElevatedButton.icon(
@@ -77,7 +106,7 @@ class ProfileTab extends StatelessWidget {
                                   );
                                 } catch (e) {
                                   ScaffoldMessenger.of(context).showSnackBar(
-                                    SnackBar(content: Text('Failed to send reset email: \\${e.toString()}')),
+                                    SnackBar(content: Text('Failed to send reset email: \${e.toString()}')),
                                   );
                                 }
                               },

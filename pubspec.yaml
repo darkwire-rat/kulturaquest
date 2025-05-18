@@ -19,6 +19,7 @@ dependencies:
   cloud_firestore: ^5.5.0
   flutter_svg: ^2.0.7 #For philippines_map.svg
   js: ^0.7.1 # dun to sa mahabang lintik na error pag nirurunhaha ito lang pala
+  shared_preferences: ^2.5.3 # For storing user preferences like sound settings
 
 dev_dependencies:
   flutter_test:

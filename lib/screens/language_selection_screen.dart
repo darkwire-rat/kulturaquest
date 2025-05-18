@@ -24,6 +24,14 @@ class LanguageSelectionScreen extends StatelessWidget {
     }
   }
 
+  void _skipLogin(BuildContext context) {
+    // Skip authentication and go directly to main screen
+    Navigator.pushReplacement(
+      context,
+      MaterialPageRoute(builder: (_) => const MainScreen()),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -55,6 +63,27 @@ class LanguageSelectionScreen extends StatelessWidget {
               ElevatedButton(
                 onPressed: () => _handleLanguageSelection(context),
                 child: const Text('Tagalog'),
+              ),
+              const SizedBox(height: 20),
+              
+              // Divider with text
+              const Row(
+                children: [
+                  Expanded(child: Divider(thickness: 1)),
+                  Padding(
+                    padding: EdgeInsets.symmetric(horizontal: 8.0),
+                    child: Text('OR'),
+                  ),
+                  Expanded(child: Divider(thickness: 1)),
+                ],
+              ),
+              const SizedBox(height: 20),
+              
+              // Admin/Skip Login Button
+              OutlinedButton.icon(
+                onPressed: () => _skipLogin(context),
+                icon: const Icon(Icons.admin_panel_settings_outlined),
+                label: const Text('Admin / Skip Login'),
               ),
             ],
           ),

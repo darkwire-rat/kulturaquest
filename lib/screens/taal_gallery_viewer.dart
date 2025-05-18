@@ -3,8 +3,17 @@ import 'package:photo_view/photo_view_gallery.dart';
 import 'package:photo_view/photo_view.dart';
 
 class TaalGalleryViewer extends StatefulWidget {
+  final String? imagePath;
+  final List<String>? images;
   final int initialIndex;
-  const TaalGalleryViewer({Key? key, this.initialIndex = 0}) : super(key: key);
+  
+  const TaalGalleryViewer({
+    Key? key,
+    this.imagePath,
+    this.images,
+    this.initialIndex = 0,
+  }) : assert(imagePath != null || images != null, 'Either imagePath or images must be provided'),
+       super(key: key);
 
   @override
   State<TaalGalleryViewer> createState() => _TaalGalleryViewerState();
@@ -12,23 +21,27 @@ class TaalGalleryViewer extends StatefulWidget {
 
 class _TaalGalleryViewerState extends State<TaalGalleryViewer> {
   late int currentIndex;
-  final List<String> images = [
-    'assets/images/taal_volcano.jpg',
-    'assets/images/taal_volcano2.jpg',
-    'assets/images/taal_volcano3.jpg',
-    'assets/images/taal_volcano4.jpg',
-    'assets/images/taal_volcano5.jpg',
-    'assets/images/taal_volcano6.jpg',
-    'assets/images/taal_volcano7.jpg',
-  ];
+  late List<String> images;
   late PageController _controller;
-
+  
   @override
   void initState() {
     super.initState();
-    currentIndex = widget.initialIndex;
+    
+    // Initialize images list based on what's provided
+    if (widget.images != null) {
+      images = widget.images!;
+    } else {
+      // If single image path is provided, create a list with just that image
+      images = [widget.imagePath!];
+    }
+    
+    // Ensure initialIndex is within bounds
+    currentIndex = widget.initialIndex.clamp(0, images.length - 1);
     _controller = PageController(initialPage: currentIndex);
   }
+
+
 
   @override
   void dispose() {

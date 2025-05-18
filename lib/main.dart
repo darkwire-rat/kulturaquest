@@ -9,6 +9,11 @@ import 'screens/language_selection_screen.dart';
 import 'screens/main_screen.dart';
 import 'screens/sign_in_screen.dart';
 import 'screens/sign_up_screen.dart';
+import 'screens/heroes_screen.dart';
+import 'screens/hero_quiz_screen.dart';
+import 'screens/president_detail_screen.dart';
+import 'screens/president_quiz_screen.dart';
+import 'screens/stories_screen.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -30,6 +35,24 @@ class MainApp extends StatelessWidget {
         '/main': (context) => const MainScreen(),
         '/signin': (context) => const SignInScreen(),
         '/signup': (context) => const SignUpScreen(),
+        '/heroes': (context) => const HeroesScreen(),
+        '/presidents': (context) => const MainScreen(),
+        '/hero_quiz': (context) {
+          final args = ModalRoute.of(context)!.settings.arguments as Map<String, dynamic>;
+          return HeroQuizScreen(
+            heroName: args['heroName'],
+            quizTitle: args['quizTitle'],
+          );
+        },
+        '/president_detail': (context) {
+          final args = ModalRoute.of(context)!.settings.arguments as Map<String, dynamic>;
+          return PresidentDetailScreen(
+            name: args['name'],
+            imagePath: args['imagePath'],
+            term: args['term'],
+          );
+        },
+        '/stories': (context) => const StoriesScreen(),
       },
     );
   }
