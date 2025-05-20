@@ -14,27 +14,27 @@ class CategoryDetailScreen extends StatelessWidget {
       items = [
         {
           'name': 'Emilio Aguinaldo',
-          'image': 'assets/images/emilio.jpg',
+          'image': 'images/luzon/emilio_aguinaldo.jpg',
           'term': '1899-1901'
         },
         {
           'name': 'Manuel L. Quezon',
-          'image': 'assets/images/quezon.jpg',
+          'image': 'images/quezon.jpg',
           'term': '1935-1944'
         },
         {
           'name': 'Ramon Magsaysay',
-          'image': 'assets/images/magsaysay.jpg',
+          'image': 'images/magsaysay.jpg',
           'term': '1953-1957'
         },
         {
           'name': 'Ferdinand Marcos',
-          'image': 'assets/images/fmarcos.jpg',
+          'image': 'images/fmarcos.jpg',
           'term': '1965-1986'
         },
         {
           'name': 'Corazon Aquino',
-          'image': 'assets/images/corazon.jpg',
+          'image': 'images/corazon.jpg',
           'term': '1986-1992'
         },
       ];

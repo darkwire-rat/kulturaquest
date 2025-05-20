@@ -12,8 +12,30 @@ class HomeTab extends StatelessWidget {
     final double mapWidth = MediaQuery.of(context).size.width * 0.95;
 
     return Scaffold(
-      appBar: AppBar(title: const Text('Explore Philippines')),
-      body: Column(
+      appBar: AppBar(
+        title: const Text('Explore Philippines', 
+          style: TextStyle(
+            fontWeight: FontWeight.bold,
+            color: Color(0xFF5F4B32), // Dark brown text
+            fontFamily: 'Serif',
+          ),
+        ),
+        backgroundColor: const Color(0xFFF5EFE0), // Parchment/vintage paper color
+        elevation: 4,
+        shadowColor: Color(0xFFD0C8B0), // Subtle shadow for depth
+      ),
+      body: Container(
+        decoration: const BoxDecoration(
+          gradient: LinearGradient(
+            begin: Alignment.topCenter,
+            end: Alignment.bottomCenter,
+            colors: [
+              Color(0xFFF5EFE0), // Parchment/vintage paper color at top
+              Color(0xFFE8DFC9), // Slightly darker vintage color at bottom
+            ],
+          ),
+        ),
+        child: Column(
         children: [
           const SizedBox(height: 20),
           // Buttons Row
@@ -29,7 +51,18 @@ class HomeTab extends StatelessWidget {
                     ),
                   );
                 },
-                child: const Text('Luzon'),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: const Color(0xFF8B4513), // Saddle brown
+                  foregroundColor: Colors.white,
+                  padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(8),
+                    side: const BorderSide(color: Color(0xFFD2B48C), width: 2), // Tan border
+                  ),
+                  elevation: 4,
+                  shadowColor: const Color(0xFF5F4B32).withOpacity(0.5),
+                ),
+                child: const Text('Luzon', style: TextStyle(fontWeight: FontWeight.bold)),
               ),
               ElevatedButton(
                 onPressed: () {
@@ -40,7 +73,18 @@ class HomeTab extends StatelessWidget {
                     ),
                   );
                 },
-                child: const Text('Visayas'),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: const Color(0xFF8B4513), // Saddle brown
+                  foregroundColor: Colors.white,
+                  padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(8),
+                    side: const BorderSide(color: Color(0xFFD2B48C), width: 2), // Tan border
+                  ),
+                  elevation: 4,
+                  shadowColor: const Color(0xFF5F4B32).withOpacity(0.5),
+                ),
+                child: const Text('Visayas', style: TextStyle(fontWeight: FontWeight.bold)),
               ),
               ElevatedButton(
                 onPressed: () {
@@ -51,7 +95,18 @@ class HomeTab extends StatelessWidget {
                     ),
                   );
                 },
-                child: const Text('Mindanao'),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: const Color(0xFF8B4513), // Saddle brown
+                  foregroundColor: Colors.white,
+                  padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(8),
+                    side: const BorderSide(color: Color(0xFFD2B48C), width: 2), // Tan border
+                  ),
+                  elevation: 4,
+                  shadowColor: const Color(0xFF5F4B32).withOpacity(0.5),
+                ),
+                child: const Text('Mindanao', style: TextStyle(fontWeight: FontWeight.bold)),
               ),
             ],
           ),
@@ -67,6 +122,6 @@ class HomeTab extends StatelessWidget {
           ),
         ],
       ),
-    );
+    ));
   }
 }

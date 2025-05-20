@@ -94,8 +94,16 @@ class _HeroQuizScreenState extends State<HeroQuizScreen> {
       // Only update if the new score is higher than the previous high score
       if (newScore > _previousHighScore) {
         // Calculate achievement score on a 5-point scale for national heroes quizzes
-        final achievementScore = (_questions.isEmpty) ? 0 : 
-            (newScore / 100 * 5).round(); // Convert percentage score to 5-point scale
+        // Each hero quiz is worth exactly 5 points maximum
+        int achievementScore = 5;
+        
+        // If score is less than 100%, calculate proportional points (capped at 5)
+        if (newScore < 100) {
+          achievementScore = ((newScore / 100) * 5).round();
+        }
+        
+        // Ensure the score never exceeds 5 points per quiz
+        achievementScore = achievementScore > 5 ? 5 : achievementScore;
         
         await _achievementsService.updateAchievement(
           _achievementClusterId,
@@ -488,7 +496,22 @@ class _HeroQuizScreenState extends State<HeroQuizScreen> {
     final currentQuestion = _questions[_currentQuestionIndex];
     final selectedAnswer = _userAnswers[_currentQuestionIndex];
     
-    return Padding(
+    return Container(
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          begin: Alignment.topCenter,
+          end: Alignment.bottomCenter,
+          colors: [Colors.orange.shade50, Colors.white],
+        ),
+        borderRadius: BorderRadius.circular(16),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.1),
+            blurRadius: 10,
+            spreadRadius: 2,
+          ),
+        ],
+      ),
       padding: const EdgeInsets.all(16.0),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -602,7 +625,7 @@ class _HeroQuizScreenState extends State<HeroQuizScreen> {
       margin: const EdgeInsets.only(bottom: 12),
       elevation: isSelected ? 4 : 1,
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-      color: isSelected ? Colors.blue.shade50 : Colors.white,
+      color: isSelected ? Colors.orange.shade50 : Colors.white,
       child: InkWell(
         onTap: () => _selectAnswer(optionIndex),
         borderRadius: BorderRadius.circular(10),
@@ -615,22 +638,23 @@ class _HeroQuizScreenState extends State<HeroQuizScreen> {
                 height: 30,
                 decoration: BoxDecoration(
                   shape: BoxShape.circle,
-                  color: isSelected ? Colors.blue : Colors.grey.shade200,
+                  color: isSelected ? Colors.orange : Colors.grey.shade200,
                   border: Border.all(
-                    color: isSelected ? Colors.blue.shade700 : Colors.grey.shade400,
+                    color: isSelected ? Colors.orange.shade700 : Colors.grey.shade400,
                     width: 2,
                   ),
                 ),
-                child: isSelected
-                    ? const Icon(Icons.check, color: Colors.white, size: 18)
-                    : Text(
-                        String.fromCharCode(65 + optionIndex), // A, B, C, D
-                        style: TextStyle(
-                          color: isSelected ? Colors.white : Colors.grey.shade700,
-                          fontWeight: FontWeight.bold,
-                        ),
-                        textAlign: TextAlign.center,
-                      ),
+                child: Center(
+                  child: Text(
+                    String.fromCharCode(65 + optionIndex), // A, B, C, D
+                    style: TextStyle(
+                      color: isSelected ? Colors.white : Colors.grey.shade700,
+                      fontWeight: FontWeight.bold,
+                      fontSize: 14,
+                    ),
+                    textAlign: TextAlign.center,
+                  ),
+                ),
               ),
               const SizedBox(width: 12),
               Expanded(

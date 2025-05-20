@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'dart:math' as math;
 import '../services/achievements_service.dart';
 import '../models/achievement_models.dart';
 import '../utils/quiz_score_calculator.dart';
@@ -437,10 +438,8 @@ class _HistoryQuizScreenState extends State<HistoryQuizScreen> {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            isPerfectScore
-                ? const Icon(Icons.emoji_events, color: Colors.amber, size: 80)
-                : const Icon(Icons.check_circle, color: Colors.green, size: 80),
-            const SizedBox(height: 16),
+            // No images or icons as per requirement
+            const SizedBox(height: 8),
             Text(
               message,
               textAlign: TextAlign.center,
@@ -608,23 +607,36 @@ class _HistoryQuizScreenState extends State<HistoryQuizScreen> {
         // Calculate grand scholar score based on completion of regional quizzes
         int grandScholarScore = 0;
         // For grand scholar, we use a maximum of 10 points
-        // If all regions are completed with perfect scores, award full 10 points
-        if (luzonAchievement.isCompleted && luzonAchievement.userScore == 7) grandScholarScore += 3;
-        if (visayasAchievement.isCompleted && visayasAchievement.userScore == 7) grandScholarScore += 3;
-        if (mindanaoAchievement.isCompleted && mindanaoAchievement.userScore == 7) grandScholarScore += 4;
+        // Calculate proportional points from each regional quiz, capped at their maximum
+        if (luzonAchievement.isCompleted) grandScholarScore += (luzonAchievement.userScore > 7 ? 7 : luzonAchievement.userScore);
+        if (visayasAchievement.isCompleted) grandScholarScore += (visayasAchievement.userScore > 7 ? 7 : visayasAchievement.userScore);
+        if (mindanaoAchievement.isCompleted) grandScholarScore += (mindanaoAchievement.userScore > 7 ? 7 : mindanaoAchievement.userScore);
         
-        // Check if all regions are perfect for completion
-        bool allPerfect = luzonAchievement.userScore == 7 && 
-                         visayasAchievement.userScore == 7 && 
-                         mindanaoAchievement.userScore == 7;
+        // Check if all regions are completed for grand scholar achievement
+        bool allRegionsCompleted = luzonAchievement.isCompleted && 
+                                visayasAchievement.isCompleted && 
+                                mindanaoAchievement.isCompleted;
         
         // Update the grand scholar achievement
+        // Calculate the grand scholar score, capped at 10 points
+        int finalGrandScholarScore = math.min(grandScholarScore, 10);
+        
+        // Calculate the overall progress percentage based on total points earned out of 31 (7+7+7+10)
+        // This ensures the total score doesn't exceed 31 points and progress is calculated consistently
+        int totalPointsEarned = (luzonAchievement.isCompleted ? (luzonAchievement.userScore > 7 ? 7 : luzonAchievement.userScore) : 0) +
+                             (visayasAchievement.isCompleted ? (visayasAchievement.userScore > 7 ? 7 : visayasAchievement.userScore) : 0) +
+                             (mindanaoAchievement.isCompleted ? (mindanaoAchievement.userScore > 7 ? 7 : mindanaoAchievement.userScore) : 0) +
+                             finalGrandScholarScore;
+        
+        // Grand scholar is considered completed if all regional quizzes are completed
+        bool isGrandScholarCompleted = allRegionsCompleted;
+        
         await achievementsService.updateAchievement(
           'history',
           'regional_history',
           'history_grand_scholar',
-          score: allPerfect ? 10 : grandScholarScore, // Award full 10 points if all regional quizzes are perfect
-          completed: allPerfect,
+          score: finalGrandScholarScore, // Score is capped at 10 points
+          completed: isGrandScholarCompleted,
         );
       }
     }
@@ -646,14 +658,10 @@ class _HistoryQuizScreenState extends State<HistoryQuizScreen> {
 
     return Scaffold(
       appBar: AppBar(
-        title: Text('${widget.region ?? 'All Regions'} History Quiz'),
-        backgroundColor: widget.region == 'Luzon'
-            ? Colors.blue
-            : widget.region == 'Visayas'
-                ? Colors.green
-                : widget.region == 'Mindanao'
-                    ? Colors.red
-                    : Colors.purple,
+        title: Text(widget.isRandom ? 'History Grand Scholar Quiz' : '${widget.region} History Quiz'),
+        backgroundColor: Colors.orange.shade400,
+        foregroundColor: Colors.white,
+        elevation: 4,
         actions: [
           // Show completion badge if quiz was already completed
           if (isQuizCompleted)
@@ -784,25 +792,8 @@ class _HistoryQuizScreenState extends State<HistoryQuizScreen> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      // Question image
-                      ClipRRect(
-                        borderRadius: BorderRadius.circular(16),
-                        child: Image.asset(
-                          imagePath,
-                          height: 200,
-                          width: double.infinity,
-                          fit: BoxFit.cover,
-                          errorBuilder: (context, error, stackTrace) {
-                            return Container(
-                              height: 200,
-                              width: double.infinity,
-                              color: Colors.grey[300],
-                              child: const Icon(Icons.image_not_supported, size: 50, color: Colors.grey),
-                            );
-                          },
-                        ),
-                      ),
-                      const SizedBox(height: 20),
+                      // No images during quiz as per requirement
+                      const SizedBox(height: 10),
                       
                       // Question text
                       Text(
@@ -823,27 +814,14 @@ class _HistoryQuizScreenState extends State<HistoryQuizScreen> {
                         IconData? icon;
                         Color? iconColor;
                         
+                        // Don't show correct/incorrect indicators during the quiz
+                        // Only highlight the selected answer
                         if (isAnswered) {
                           if (isSelected) {
-                            if (isCorrect == true) {
-                              backgroundColor = Colors.green[100];
-                              borderColor = Colors.green;
-                              textColor = Colors.green[800];
-                              icon = Icons.check_circle;
-                              iconColor = Colors.green;
-                            } else {
-                              backgroundColor = Colors.red[100];
-                              borderColor = Colors.red;
-                              textColor = Colors.red[800];
-                              icon = Icons.cancel;
-                              iconColor = Colors.red;
-                            }
-                          } else if (isCorrectAnswer) {
-                            backgroundColor = Colors.green[50];
-                            borderColor = Colors.green[300];
-                            textColor = Colors.green[800];
-                            icon = Icons.check_circle_outline;
-                            iconColor = Colors.green[300];
+                            backgroundColor = Colors.orange.shade100;
+                            borderColor = Colors.orange.shade400;
+                            textColor = Colors.orange.shade800;
+                            icon = null; // Don't show any icon to avoid revealing the answer
                           }
                         }
                         

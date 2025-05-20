@@ -37,9 +37,7 @@ flutter:
     - assets/foods/
     - assets/culture/
     - assets/festivals/
-    # Add Luzon images and other direct image paths
-    - images/
-    - images/luzon/
+    - assets/images/luzon/
 
 
 

@@ -282,43 +282,18 @@ class _QuizQuestionsScreenState extends State<QuizQuestionsScreen> {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            // Trophy or medal for perfect score
-            if (isPerfectScore)
-              Container(
-                width: 100,
-                height: 100,
-                decoration: BoxDecoration(
-                  color: Colors.amber.withOpacity(0.1),
-                  shape: BoxShape.circle,
-                  border: Border.all(
-                    color: Colors.amber.withOpacity(0.5),
-                    width: 2,
-                  ),
-                ),
-                child: const Icon(
-                  Icons.emoji_events_rounded,
-                  color: Colors.amber,
-                  size: 60,
-                ),
-              )
-            else
-              Container(
-                width: 80,
-                height: 80,
-                decoration: BoxDecoration(
-                  color: Colors.blueAccent.withOpacity(0.1),
-                  shape: BoxShape.circle,
-                  border: Border.all(
-                    color: Colors.blueAccent.withOpacity(0.5),
-                    width: 2,
-                  ),
-                ),
-                child: const Icon(
-                  Icons.check_circle_rounded,
-                  color: Colors.blueAccent,
-                  size: 50,
+            // Text notification based on score (no images)
+            Padding(
+              padding: const EdgeInsets.symmetric(vertical: 12),
+              child: Text(
+                isPerfectScore ? 'Perfect Score!' : 'Quiz Completed',
+                style: TextStyle(
+                  color: isPerfectScore ? Colors.amber : Colors.blueAccent,
+                  fontSize: 24,
+                  fontWeight: FontWeight.bold,
                 ),
               ),
+            ),
             const SizedBox(height: 24),
             // Title
             Text(
@@ -440,31 +415,8 @@ class _QuizQuestionsScreenState extends State<QuizQuestionsScreen> {
                 ),
               ),
             ),
-            // Decorative elements
-            Positioned(
-              right: -100,
-              top: -100,
-              child: Container(
-                width: 300,
-                height: 300,
-                decoration: BoxDecoration(
-                  shape: BoxShape.circle,
-                  color: Colors.blue.withOpacity(0.1),
-                ),
-              ),
-            ),
-            Positioned(
-              left: -50,
-              bottom: -50,
-              child: Container(
-                width: 200,
-                height: 200,
-                decoration: BoxDecoration(
-                  shape: BoxShape.circle,
-                  color: Colors.purple.withOpacity(0.1),
-                ),
-              ),
-            ),
+            // No decorative elements as per requirement
+
             // Main content
             SafeArea(
               child: Padding(
@@ -480,6 +432,7 @@ class _QuizQuestionsScreenState extends State<QuizQuestionsScreen> {
                           icon: const Icon(Icons.arrow_back, color: Colors.white, size: 28),
                           onPressed: () => Navigator.pop(context),
                         ),
+                        // Hide the score during the quiz - only show it at the end
                         Container(
                           padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
                           decoration: BoxDecoration(
@@ -489,10 +442,10 @@ class _QuizQuestionsScreenState extends State<QuizQuestionsScreen> {
                           ),
                           child: Row(
                             children: [
-                              const Icon(Icons.emoji_events_rounded, color: Colors.amber, size: 24),
+                              const Icon(Icons.quiz_rounded, color: Colors.amber, size: 24),
                               const SizedBox(width: 8),
                               Text(
-                                'Score: $score',
+                                'Quiz in Progress',
                                 style: const TextStyle(
                                   color: Colors.white,
                                   fontSize: 18,
@@ -610,26 +563,21 @@ class _QuizQuestionsScreenState extends State<QuizQuestionsScreen> {
                           Color? borderColor;
                           IconData? icon;
                           Color? iconColor;
-                          
-                          if (isAnswered) {
-                            if (isCorrectAnswer) {
-                              cardColor = Colors.green.withOpacity(0.1);
-                              borderColor = Colors.green.withOpacity(0.5);
-                              icon = Icons.check_circle_rounded;
-                              iconColor = Colors.greenAccent;
-                            } else if (isSelected) {
-                              cardColor = Colors.red.withOpacity(0.1);
-                              borderColor = Colors.red.withOpacity(0.5);
-                              icon = Icons.cancel_rounded;
-                              iconColor = Colors.redAccent;
-                            } else {
-                              cardColor = Colors.white.withOpacity(0.05);
-                              borderColor = Colors.white.withOpacity(0.1);
-                            }
-                          } else {
-                            cardColor = Colors.white.withOpacity(0.05);
-                            borderColor = Colors.white.withOpacity(0.1);
-                          }
+                                                    // Don't show correct/incorrect indicators during the quiz
+                           // Only highlight the selected answer
+                           if (isAnswered) {
+                             if (isSelected) {
+                               cardColor = Colors.blueAccent.withOpacity(0.1);
+                               borderColor = Colors.blueAccent.withOpacity(0.5);
+                               icon = null; // Don't show check/cross icons
+                             } else {
+                               cardColor = Colors.white.withOpacity(0.05);
+                               borderColor = Colors.white.withOpacity(0.1);
+                             }
+                           } else {
+                             cardColor = Colors.white.withOpacity(0.05);
+                             borderColor = Colors.white.withOpacity(0.1);
+                           }
                           
                           return AnimatedContainer(
                             duration: const Duration(milliseconds: 300),
@@ -671,29 +619,16 @@ class _QuizQuestionsScreenState extends State<QuizQuestionsScreen> {
                                         height: 36,
                                         alignment: Alignment.center,
                                         decoration: BoxDecoration(
-                                          color: isAnswered
-                                              ? (isCorrectAnswer 
-                                                  ? Colors.green.withOpacity(0.2) 
-                                                  : isSelected 
-                                                      ? Colors.red.withOpacity(0.2) 
-                                                      : Colors.white.withOpacity(0.1))
-                                              : (isSelected 
-                                                  ? Colors.blueAccent.withOpacity(0.2) 
-                                                  : Colors.white.withOpacity(0.1)),
+                                          // Don't use different colors for correct/incorrect answers during the quiz
+                                          color: isSelected
+                                              ? Colors.blueAccent.withOpacity(0.2)
+                                              : Colors.white.withOpacity(0.1),
                                           borderRadius: BorderRadius.circular(10),
                                         ),
                                         child: Text(
                                           String.fromCharCode(65 + idx), // A, B, C, D
                                           style: TextStyle(
-                                            color: isAnswered
-                                                ? (isCorrectAnswer 
-                                                    ? Colors.greenAccent 
-                                                    : isSelected 
-                                                        ? Colors.redAccent 
-                                                        : Colors.white70)
-                                                : (isSelected 
-                                                    ? Colors.blueAccent 
-                                                    : Colors.white70),
+                                            color: isSelected ? Colors.blueAccent : Colors.white70,
                                             fontSize: 16,
                                             fontWeight: FontWeight.bold,
                                           ),
@@ -705,16 +640,11 @@ class _QuizQuestionsScreenState extends State<QuizQuestionsScreen> {
                                         child: Text(
                                           choice,
                                           style: TextStyle(
-                                            color: isAnswered
-                                                ? (isCorrectAnswer 
-                                                    ? Colors.greenAccent 
-                                                    : isSelected 
-                                                        ? Colors.redAccent 
-                                                        : Colors.white70)
-                                                : Colors.white,
-                                            fontSize: 16,
-                                            fontWeight: FontWeight.w500,
-                                            height: 1.4,
+                                            // Don't use different colors for correct/incorrect answers during the quiz
+                                             color: isSelected ? Colors.white : Colors.white70,
+                                             fontSize: 16,
+                                             fontWeight: isSelected ? FontWeight.bold : FontWeight.w500,
+                                             height: 1.4,
                                           ),
                                         ),
                                       ),

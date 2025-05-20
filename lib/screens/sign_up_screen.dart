@@ -15,6 +15,34 @@ class _SignUpScreenState extends State<SignUpScreen> {
   String? _errorMessage;
 
   Future<void> _signUp() async {
+    // Reset error message
+    setState(() {
+      _errorMessage = null;
+    });
+    
+    // Validate inputs
+    if (_emailController.text.trim().isEmpty) {
+      setState(() {
+        _errorMessage = 'Please enter your email address';
+      });
+      return;
+    }
+    
+    if (_passwordController.text.trim().isEmpty) {
+      setState(() {
+        _errorMessage = 'Please enter your password';
+      });
+      return;
+    }
+    
+    // Basic password validation
+    if (_passwordController.text.trim().length < 6) {
+      setState(() {
+        _errorMessage = 'Password must be at least 6 characters';
+      });
+      return;
+    }
+
     try {
       await FirebaseAuth.instance.createUserWithEmailAndPassword(
         email: _emailController.text.trim(),
@@ -26,7 +54,30 @@ class _SignUpScreenState extends State<SignUpScreen> {
       );
     } catch (e) {
       setState(() {
-        _errorMessage = e.toString();
+        // Convert Firebase errors to user-friendly messages
+        if (e is FirebaseAuthException) {
+          switch (e.code) {
+            case 'email-already-in-use':
+              _errorMessage = 'An account already exists with this email';
+              break;
+            case 'invalid-email':
+              _errorMessage = 'Please enter a valid email address';
+              break;
+            case 'weak-password':
+              _errorMessage = 'This password is too weak. Please choose a stronger one';
+              break;
+            case 'operation-not-allowed':
+              _errorMessage = 'Account creation is currently disabled';
+              break;
+            case 'network-request-failed':
+              _errorMessage = 'Network error. Please check your connection';
+              break;
+            default:
+              _errorMessage = 'Sign up failed. Please try again';
+          }
+        } else {
+          _errorMessage = 'An unexpected error occurred. Please try again';
+        }
       });
     }
   }
@@ -35,12 +86,53 @@ class _SignUpScreenState extends State<SignUpScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(title: const Text('Sign Up')),
-      body: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: Column(
-          children: [
+      body: Center(
+        child: Container(
+          padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 20),
+          width: 350,
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(15),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withOpacity(0.1),
+                blurRadius: 10,
+                spreadRadius: 2,
+              ),
+            ],
+          ),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.center,
+            children: [
+              Image.asset(
+                'assets/images/kul.png',
+                height: 100,
+                fit: BoxFit.contain,
+              ),
+              const SizedBox(height: 20),
             if (_errorMessage != null)
-              Text(_errorMessage!, style: const TextStyle(color: Colors.red)),
+              Container(
+                padding: const EdgeInsets.all(12),
+                margin: const EdgeInsets.only(bottom: 16),
+                decoration: BoxDecoration(
+                  color: Colors.red.shade50,
+                  borderRadius: BorderRadius.circular(8),
+                  border: Border.all(color: Colors.red.shade200),
+                ),
+                child: Row(
+                  children: [
+                    Icon(Icons.error_outline, color: Colors.red.shade700, size: 20),
+                    const SizedBox(width: 10),
+                    Expanded(
+                      child: Text(
+                        _errorMessage!,
+                        style: TextStyle(color: Colors.red.shade700),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
             TextField(
               controller: _emailController,
               decoration: const InputDecoration(labelText: 'Email'),
@@ -50,15 +142,30 @@ class _SignUpScreenState extends State<SignUpScreen> {
               decoration: const InputDecoration(labelText: 'Password'),
               obscureText: true,
             ),
-            const SizedBox(height: 20),
-            ElevatedButton(onPressed: _signUp, child: const Text('Sign Up')),
-            TextButton(
-              onPressed: () {
-                Navigator.pop(context); // Back to Sign In
-              },
-              child: const Text("Already have an account? Sign In"),
+            const SizedBox(height: 30),
+            Center(
+              child: ElevatedButton(
+                onPressed: _signUp,
+                style: ElevatedButton.styleFrom(
+                  minimumSize: const Size(200, 50),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                ),
+                child: const Text('Sign Up', style: TextStyle(fontSize: 16)),
+              ),
             ),
-          ],
+            const SizedBox(height: 15),
+            Center(
+              child: TextButton(
+                onPressed: () {
+                  Navigator.pop(context); // Back to Sign In
+                },
+                child: const Text("Already have an account? Sign In"),
+              ),
+            ),
+            ],
+          ),
         ),
       ),
     );

@@ -607,23 +607,23 @@ class _TraditionsQuizScreenState extends State<TraditionsQuizScreen> {
         // Calculate grand master score based on completion of regional quizzes
         int grandMasterScore = 0;
         // For grand master, we use a maximum of 10 points
-        // If all regions are completed with perfect scores, award full 10 points
-        if (luzonAchievement.isCompleted && luzonAchievement.userScore == 7) grandMasterScore += 3;
-        if (visayasAchievement.isCompleted && visayasAchievement.userScore == 7) grandMasterScore += 3;
-        if (mindanaoAchievement.isCompleted && mindanaoAchievement.userScore == 7) grandMasterScore += 4;
+        // Calculate proportional points from each regional quiz, capped at their maximum
+        if (luzonAchievement.isCompleted) grandMasterScore += (luzonAchievement.userScore > 7 ? 7 : luzonAchievement.userScore);
+        if (visayasAchievement.isCompleted) grandMasterScore += (visayasAchievement.userScore > 7 ? 7 : visayasAchievement.userScore);
+        if (mindanaoAchievement.isCompleted) grandMasterScore += (mindanaoAchievement.userScore > 7 ? 7 : mindanaoAchievement.userScore);
         
-        // Check if all regions are perfect for completion
-        bool allPerfect = luzonAchievement.userScore == 7 && 
-                         visayasAchievement.userScore == 7 && 
-                         mindanaoAchievement.userScore == 7;
+        // Check if all regions are completed for grand master achievement
+        bool allRegionsCompleted = luzonAchievement.isCompleted && 
+                              visayasAchievement.isCompleted && 
+                              mindanaoAchievement.isCompleted;
         
         // Update the grand master achievement
         await achievementsService.updateAchievement(
           'traditions',
           'regional_traditions',
           'traditions_grand_master',
-          score: allPerfect ? 10 : grandMasterScore, // Award full 10 points if all regional quizzes are perfect
-          completed: allPerfect,
+          score: allRegionsCompleted ? 10 : grandMasterScore, // Award full 10 points if all regional quizzes are completed
+          completed: allRegionsCompleted,
         );
       }
     }
@@ -767,25 +767,8 @@ class _TraditionsQuizScreenState extends State<TraditionsQuizScreen> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      // Question image
-                      ClipRRect(
-                        borderRadius: BorderRadius.circular(16),
-                        child: Image.asset(
-                          imagePath,
-                          height: 200,
-                          width: double.infinity,
-                          fit: BoxFit.cover,
-                          errorBuilder: (context, error, stackTrace) {
-                            return Container(
-                              height: 200,
-                              width: double.infinity,
-                              color: Colors.grey[300],
-                              child: const Icon(Icons.image_not_supported, size: 50, color: Colors.grey),
-                            );
-                          },
-                        ),
-                      ),
-                      const SizedBox(height: 20),
+                      // No images during quiz as per requirement
+                      const SizedBox(height: 10),
                       
                       // Question text
                       Text(
@@ -799,34 +782,21 @@ class _TraditionsQuizScreenState extends State<TraditionsQuizScreen> {
                         final isSelected = selectedChoice == choice;
                         final isCorrectAnswer = choice == currentQuestion['correctAnswer'];
                         
-                        // Determine colors and icons based on selection and correctness
+                        // Determine colors and icons based on selection only - don't reveal answers
                         Color? backgroundColor;
                         Color? borderColor;
                         Color? textColor;
                         IconData? icon;
                         Color? iconColor;
                         
+                        // Don't show correct/incorrect indicators during the quiz
+                        // Only highlight the selected answer
                         if (isAnswered) {
                           if (isSelected) {
-                            if (isCorrect == true) {
-                              backgroundColor = Colors.green[100];
-                              borderColor = Colors.green;
-                              textColor = Colors.green[800];
-                              icon = Icons.check_circle;
-                              iconColor = Colors.green;
-                            } else {
-                              backgroundColor = Colors.red[100];
-                              borderColor = Colors.red;
-                              textColor = Colors.red[800];
-                              icon = Icons.cancel;
-                              iconColor = Colors.red;
-                            }
-                          } else if (isCorrectAnswer) {
-                            backgroundColor = Colors.green[50];
-                            borderColor = Colors.green[300];
-                            textColor = Colors.green[800];
-                            icon = Icons.check_circle_outline;
-                            iconColor = Colors.green[300];
+                            backgroundColor = Colors.orange.shade100;
+                            borderColor = Colors.orange.shade400;
+                            textColor = Colors.orange.shade800;
+                            icon = null; // Don't show any icon to avoid revealing the answer
                           }
                         }
                         

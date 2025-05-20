@@ -427,7 +427,7 @@ class LuzonScreen extends StatelessWidget {
       {
         'name': 'Emilio Aguinaldo',
         'role': 'First President',
-        'image': 'assets/images/luzon/emilio_aguinaldo.jpg',
+        'image': 'images/luzon/emilio_aguinaldo.jpg',
         'desc': 'Led Philippine forces during the Spanish and American wars.'
       },
     ];

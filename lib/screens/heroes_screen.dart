@@ -66,7 +66,7 @@ class HeroesScreen extends StatelessWidget {
             _buildHeroCard(
               context: context,
               name: 'Jose Rizal',
-              imagePath: 'assets/images/heroes.jpg',
+              imagePath: 'images/luzon/jse_rizal.jpg',
               subtitle: 'National Hero of the Philippines',
               birth: 'June 19, 1861',
               death: 'December 30, 1896',
@@ -79,7 +79,7 @@ class HeroesScreen extends StatelessWidget {
             _buildHeroCard(
               context: context,
               name: 'Andres Bonifacio',
-              imagePath: 'assets/images/heroes.jpg',
+              imagePath: 'images/luzon/andres_boni.jpeg',
               subtitle: 'Father of the Philippine Revolution',
               birth: 'November 30, 1863',
               death: 'May 10, 1897',
@@ -92,7 +92,7 @@ class HeroesScreen extends StatelessWidget {
             _buildHeroCard(
               context: context,
               name: 'Antonio Luna',
-              imagePath: 'assets/images/heroes.jpg',
+              imagePath: 'images/heroes.jpg',
               subtitle: 'Chief General of the Philippine Revolutionary Army',
               birth: 'October 29, 1866',
               death: 'June 5, 1899',
