@@ -9,6 +9,13 @@ import 'taal_gallery_viewer.dart';
 class LuzonScreen extends StatelessWidget {
   const LuzonScreen({super.key});
 
+  // IMAGE PATH REFERENCES (for developer reference):
+  // - Andres Bonifacio: 'images/luzon/andres_boni.jpeg'
+  // - First Republic: 'images/luzon/first_republic.jpg' 
+  // - Battle of Tirad Pass: 'images/luzon/tirad_pass.jpg'
+  // - Philippine Independence: 'images/luzon/philippine_independence.jpg'
+  // - EDSA People Power: 'images/luzon/edsa_peoplepower.jpeg'
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -43,12 +50,12 @@ class LuzonScreen extends StatelessWidget {
                       children: [
                         // Background image
                         Image.asset(
-                          'assets/images/heroes.jpg',
+                          'assets/images/luzon/Luzon_cover.jpg',
                           fit: BoxFit.cover,
                           errorBuilder: (context, error, stackTrace) {
                             // Fallback to another local image if the first one fails
                             return Image.asset(
-                              'assets/images/taal_volcano.jpg',
+                              'images/philpic.jpg',
                               fit: BoxFit.cover,
                             );
                           },
@@ -133,7 +140,16 @@ class LuzonScreen extends StatelessWidget {
                   ),
                   const SizedBox(height: 10),
                   _buildFunFacts(),
-                  const SizedBox(height: 16),
+                  const SizedBox(height: 24),
+                  const SizedBox(height: 24),
+                  // Historical Achievements
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 16),
+                    child: Text('Historical Achievements', style: Theme.of(context).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold)),
+                  ),
+                  const SizedBox(height: 10),
+                  _buildHistoricalAchievements(),
+                  const SizedBox(height: 24),
                   // Video Resource Button
                   Center(
                     child: ElevatedButton.icon(
@@ -399,19 +415,19 @@ class LuzonScreen extends StatelessWidget {
       {
         'name': 'Jose Rizal',
         'role': 'National Hero',
-        'image': 'assets/rizal.jpg',
+        'image': 'assets/images/luzon/jse_rizal.jpg',
         'desc': 'Writer, physician, and nationalist whose works sparked revolution.'
       },
       {
         'name': 'Andres Bonifacio',
         'role': 'Revolutionary Leader',
-        'image': 'assets/bonifacio.jpg',
+        'image': 'assets/images/luzon/andres_boni.jpeg',
         'desc': 'Founder of the Katipunan, led armed resistance against Spanish rule.'
       },
       {
         'name': 'Emilio Aguinaldo',
         'role': 'First President',
-        'image': 'assets/aguinaldo.jpg',
+        'image': 'assets/images/luzon/emilio_aguinaldo.jpg',
         'desc': 'Led Philippine forces during the Spanish and American wars.'
       },
     ];
@@ -446,8 +462,8 @@ class LuzonScreen extends StatelessWidget {
                       children: [
                         ClipRRect(
                           borderRadius: const BorderRadius.vertical(top: Radius.circular(12)),
-                          child: Image.network(
-                            'https://i.imgur.com/4OlVYlA.jpg', // Placeholder image
+                          child: Image.asset(
+                            person['image'] as String,
                             height: 140,
                             width: double.infinity,
                             fit: BoxFit.cover,
@@ -697,13 +713,14 @@ class LuzonScreen extends StatelessWidget {
   // Helper method to build Taal Volcano image items
   Widget _buildTaalImage(String imagePath) {
     final List<String> taalImages = [
-      'assets/images/taal_volcano.jpg',
-      'assets/images/taal_volcano2.jpg',
-      'assets/images/taal_volcano3.jpg',
-      'assets/images/taal_volcano4.jpg',
-      'assets/images/taal_volcano5.jpg',
-      'assets/images/taal_volcano6.jpg',
-      'assets/images/taal_volcano7.jpg',
+      'images/taal_volcano.jpg',
+      'images/taal_volcano1.jpg',
+      'images/taal_volcano2.jpg',
+      'images/taal_volcano3.jpg',
+      'images/taal_volcano4.jpg',
+      'images/taal_volcano5.jpg',
+      'images/taal_volcano6.jpg',
+      'images/taal_volcano7.jpg',
     ];
     
     final initialIndex = taalImages.indexOf(imagePath);
@@ -759,6 +776,396 @@ class LuzonScreen extends StatelessWidget {
     );
   }
 
+  Widget _buildHistoricalAchievements() {
+    final achievements = [
+      {
+        'title': 'First Philippine Republic',
+        'year': '1899',
+        'description': 'The First Philippine Republic was established in Malolos, Bulacan, making the Philippines the first constitutional republic in Asia.',
+        'icon': Icons.account_balance,
+        'image': 'assets/images/luzon/first_republic.jpg',
+      },
+      {
+        'title': 'Battle of Tirad Pass',
+        'year': '1899',
+        'description': 'General Gregorio del Pilar and 60 Filipino soldiers held off 500 American soldiers at Tirad Pass in Ilocos Sur, allowing President Aguinaldo to escape.',
+        'icon': Icons.military_tech,
+        'image': 'assets/images/luzon/tirad_pass.jpg',
+      },
+      {
+        'title': 'Philippine Independence',
+        'year': '1946',
+        'description': 'The Philippines gained full independence from the United States on July 4, 1946, with the inauguration of the Third Republic in Manila.',
+        'icon': Icons.flag,
+        'image': 'assets/images/luzon/philippine_independence.jpeg',
+      },
+      {
+        'title': 'EDSA People Power Revolution',
+        'year': '1986',
+        'description': 'A nonviolent revolution in Metro Manila that ousted President Ferdinand Marcos and restored democracy to the Philippines.',
+        'icon': Icons.people,
+        'image': 'assets/images/luzon/eda_peoplepower.jpeg',
+      },
+    ];
+
+    return Container(
+      margin: const EdgeInsets.symmetric(horizontal: 16),
+      child: Column(
+        children: achievements.map((achievement) {
+          return Card(
+            elevation: 3,
+            margin: const EdgeInsets.only(bottom: 16),
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+            child: InkWell(
+              borderRadius: BorderRadius.circular(12),
+              onTap: () {},
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  // Achievement image
+                  ClipRRect(
+                    borderRadius: const BorderRadius.vertical(top: Radius.circular(12)),
+                    child: Image.asset(
+                      achievement['image'] as String,
+                      height: 150,
+                      width: double.infinity,
+                      fit: BoxFit.cover,
+                      errorBuilder: (context, error, stackTrace) {
+                        return Container(
+                          height: 150,
+                          width: double.infinity,
+                          color: Colors.blue[100],
+                          child: Center(
+                            child: Column(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                Icon(achievement['icon'] as IconData, size: 50, color: Colors.blue[800]),
+                                const SizedBox(height: 8),
+                                const Text('Image not available', style: TextStyle(color: Colors.blue)),
+                              ],
+                            ),
+                          ),
+                        );
+                      },
+                    ),
+                  ),
+                  // Achievement content
+                  Padding(
+                    padding: const EdgeInsets.all(16),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        // Title and year
+                        Row(
+                          children: [
+                            Expanded(
+                              child: Text(
+                                achievement['title'] as String,
+                                style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                              ),
+                            ),
+                            Container(
+                              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+                              decoration: BoxDecoration(
+                                color: Colors.blue[100],
+                                borderRadius: BorderRadius.circular(20),
+                              ),
+                              child: Text(
+                                achievement['year'] as String,
+                                style: TextStyle(fontWeight: FontWeight.bold, color: Colors.blue[800]),
+                              ),
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 8),
+                        // Description
+                        Text(
+                          achievement['description'] as String,
+                          style: const TextStyle(fontSize: 14, height: 1.4),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          );
+        }).toList(),
+      ),
+    );
+  }
+
+  Widget _buildTraditionalQuiz() {
+    return Container(
+      margin: const EdgeInsets.symmetric(horizontal: 16),
+      child: Card(
+        elevation: 4,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        child: Padding(
+          padding: const EdgeInsets.all(16.0),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              const Text(
+                "Test your knowledge about Luzon traditions with these questions:",
+                style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+              ),
+              const SizedBox(height: 16),
+              // Quiz questions
+              _buildQuizQuestion(
+                question: 'Which traditional rice terraces in Luzon are known as the \'Eighth Wonder of the World\'?',
+                options: ['Chocolate Hills', 'Banaue Rice Terraces', 'Mayon Volcano', 'Hundred Islands'],
+                correctAnswerIndex: 1,
+                explanation: 'The Banaue Rice Terraces in Ifugao province are often called the \'Eighth Wonder of the World\'. They were carved into the mountains by ancestors of the indigenous people over 2,000 years ago.',
+                imageAsset: 'images/philpic.jpg',
+              ),
+              const SizedBox(height: 16),
+              _buildQuizQuestion(
+                question: 'What traditional Filipino martial art originated in Luzon?',
+                options: ['Arnis', 'Muay Thai', 'Silat', 'Karate'],
+                correctAnswerIndex: 0,
+                explanation: 'Arnis (also known as Kali or Eskrima) is a traditional Filipino martial art that uses sticks, bladed weapons, and empty hands. It originated in the northern Philippines and became the national martial art.',
+                imageAsset: 'images/philpic.jpg',
+              ),
+              const SizedBox(height: 16),
+              _buildQuizQuestion(
+                question: 'Which traditional festival in Luzon features participants covered in mud and wearing costumes made of dried banana leaves?',
+                options: ['Pahiyas Festival', 'Moriones Festival', 'Panagbenga Festival', 'Mudpack Festival'],
+                correctAnswerIndex: 3,
+                explanation: 'The Mudpack Festival (or Taong Putik Festival) is celebrated in Nueva Ecija where devotees cover themselves in mud and wear costumes made of dried banana leaves to honor Saint John the Baptist.',
+                imageAsset: 'images/philpic.jpg',
+              ),
+              const SizedBox(height: 16),
+              _buildQuizQuestion(
+                question: 'What traditional Igorot garment is made of hand-woven cloth and worn as a skirt or dress in the Cordillera region?',
+                options: ['Tapis', 'Malong', 'Bahag', 'Kimona'],
+                correctAnswerIndex: 0,
+                explanation: 'The Tapis is a traditional hand-woven skirt or tube dress worn by Igorot women in the Cordillera region. It is often decorated with intricate patterns that represent tribal identity and status.',
+                imageAsset: 'images/philpic.jpg',
+              ),
+              const SizedBox(height: 16),
+              _buildQuizQuestion(
+                question: 'Which traditional Luzon musical instrument is made from bamboo tubes of varying lengths to produce different pitches?',
+                options: ['Kulintang', 'Kudyapi', 'Bungkaka', 'Tongali'],
+                correctAnswerIndex: 3,
+                explanation: 'The Tongali (or nose flute) is a traditional bamboo musical instrument played by blowing through the nose. It is commonly used by indigenous groups in Northern Luzon, particularly the Kalinga and Ifugao.',
+                imageAsset: 'images/philpic.jpg',
+              ),
+              const SizedBox(height: 16),
+              _buildQuizQuestion(
+                question: 'What traditional Ilocano dish is made from fermented fish or shrimp with rice and salt?',
+                options: ['Dinuguan', 'Pinakbet', 'Bagnet', 'Bagoong'],
+                correctAnswerIndex: 3,
+                explanation: 'Bagoong is a traditional fermented fish or shrimp paste that originated in Ilocos. It\'s a staple condiment in Ilocano cuisine and is used as a flavoring for many dishes like pinakbet.',
+                imageAsset: 'images/philpic.jpg',
+              ),
+              const SizedBox(height: 16),
+              _buildQuizQuestion(
+                question: 'What traditional Ifugao ceremony is performed to bless the rice terraces before planting?',
+                options: ['Begnas', 'Punnuk', 'Hagabi', 'Bakle'],
+                correctAnswerIndex: 0,
+                explanation: 'Begnas is a traditional agricultural ritual performed by the Ifugao people to bless the rice terraces before planting season. It involves prayers, offerings, and community celebrations to ensure a bountiful harvest.',
+                imageAsset: 'images/philpic.jpg',
+              ),
+              const SizedBox(height: 16),
+              _buildQuizQuestion(
+                question: 'Which architectural feature is unique to traditional Ivatan houses in Batanes?',
+                options: ['Sliding bamboo windows', 'Thick cogon grass roofs', 'Limestone walls', 'Stone roofs'],
+                correctAnswerIndex: 3,
+                explanation: 'Traditional Ivatan houses in Batanes feature stone roofs (called "vakul") made from limestone and thatch, designed to withstand the strong typhoons that frequently hit the northernmost province of Luzon.',
+                imageAsset: 'images/philpic.jpg',
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildQuizQuestion({
+    required String question,
+    required List<String> options,
+    required int correctAnswerIndex,
+    required String explanation,
+    required String imageAsset,
+  }) {
+    return StatefulBuilder(
+      builder: (context, setState) {
+        // Local state for this quiz question
+        int? selectedAnswerIndex;
+        bool showExplanation = false;
+        bool isAnimating = false;
+
+        return Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            // Question text
+            Text(
+              question,
+              style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w500),
+            ),
+            const SizedBox(height: 8),
+            // Image related to the question
+            ClipRRect(
+              borderRadius: BorderRadius.circular(8),
+              child: Image.asset(
+                imageAsset,
+                height: 150,
+                width: double.infinity,
+                fit: BoxFit.cover,
+                errorBuilder: (context, error, stackTrace) {
+                  return Container(
+                    height: 150,
+                    width: double.infinity,
+                    color: Colors.blue[100],
+                    child: Center(
+                      child: Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Icon(Icons.image, size: 40, color: Colors.blue[800]),
+                            const SizedBox(height: 8),
+                            const Text('Image not available', style: TextStyle(color: Colors.blue)),
+                          ],
+                        ),
+                    ),
+                  );
+                },
+              ),
+            ),
+            const SizedBox(height: 12),
+            // Answer options
+            ...List.generate(options.length, (index) {
+              return Padding(
+                padding: const EdgeInsets.only(bottom: 8.0),
+                child: InkWell(
+                  onTap: () {
+                    if (isAnimating) return; // Prevent multiple taps during animation
+                    setState(() {
+                      isAnimating = true;
+                      selectedAnswerIndex = index;
+                    });
+                    
+                    // Add a slight delay before showing the explanation
+                    Future.delayed(const Duration(milliseconds: 500), () {
+                      setState(() {
+                        showExplanation = true;
+                        isAnimating = false;
+                      });
+                    });
+                  },
+                  child: AnimatedContainer(
+                    duration: const Duration(milliseconds: 500),
+                    curve: Curves.easeInOut,
+                    padding: const EdgeInsets.all(12),
+                    decoration: BoxDecoration(
+                      color: selectedAnswerIndex == index
+                          ? (index == correctAnswerIndex ? Colors.green[100] : Colors.red[100])
+                          : Colors.grey[100],
+                      borderRadius: BorderRadius.circular(8),
+                      border: Border.all(
+                        width: selectedAnswerIndex == index ? 2.0 : 1.0,
+                        color: selectedAnswerIndex == index
+                            ? (index == correctAnswerIndex ? Colors.green : Colors.red)
+                            : Colors.grey[300]!,
+                      ),
+                      boxShadow: selectedAnswerIndex == index ? [
+                        BoxShadow(
+                          color: index == correctAnswerIndex 
+                              ? Colors.green.withOpacity(0.3) 
+                              : Colors.red.withOpacity(0.3),
+                          blurRadius: 8,
+                          offset: const Offset(0, 2),
+                        )
+                      ] : null,
+                    ),
+                    child: Row(
+                      children: [
+                        FittedBox(
+                          fit: BoxFit.scaleDown,
+                          child: Text(
+                            '${String.fromCharCode(65 + index)}. ',
+                            style: TextStyle(
+                              fontWeight: FontWeight.bold,
+                              color: selectedAnswerIndex == index
+                                  ? (index == correctAnswerIndex ? Colors.green[800] : Colors.red[800])
+                                  : Colors.black87,
+                            ),
+                          ),
+                        ),
+                        Expanded(
+                          child: Text(
+                            options[index],
+                            style: TextStyle(
+                              fontSize: 14, // Smaller font size
+                              color: selectedAnswerIndex == index
+                                  ? (index == correctAnswerIndex ? Colors.green[800] : Colors.red[800])
+                                  : Colors.black87,
+                            ),
+                            overflow: TextOverflow.ellipsis, // Handle overflow with ellipsis
+                            maxLines: 2, // Allow up to 2 lines
+                          ),
+                        ),
+                        if (selectedAnswerIndex == index)
+                          Icon(
+                            index == correctAnswerIndex ? Icons.check_circle : Icons.cancel,
+                            color: index == correctAnswerIndex ? Colors.green : Colors.red,
+                          ),
+                      ],
+                    ),
+                  ),
+                ),
+              );
+            }),
+            // Explanation (shown after answering)
+            AnimatedCrossFade(
+              duration: const Duration(milliseconds: 500),
+              firstChild: const SizedBox.shrink(),
+              secondChild: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const SizedBox(height: 12),
+                  Container(
+                    padding: const EdgeInsets.all(12),
+                    decoration: BoxDecoration(
+                      color: Colors.blue[50],
+                      borderRadius: BorderRadius.circular(8),
+                      border: Border.all(color: Colors.blue[300]!),
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.blue.withOpacity(0.2),
+                          blurRadius: 8,
+                          offset: const Offset(0, 2),
+                        )
+                      ],
+                    ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const Row(
+                      children: [
+                        Icon(Icons.info, color: Colors.blue, size: 20),
+                        SizedBox(width: 8),
+                        Text(
+                          'Explanation:',
+                          style: TextStyle(fontWeight: FontWeight.bold, color: Colors.blue),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 8),
+                    Text(explanation),
+                  ],
+                ),
+              ),
+                ],
+              ),
+              crossFadeState: showExplanation ? CrossFadeState.showSecond : CrossFadeState.showFirst,
+            ),
+          ],
+        );
+      },
+    );
+  }
+
   Widget _buildFunFacts() {
     final facts = [
       {
@@ -807,12 +1214,12 @@ class LuzonScreen extends StatelessWidget {
                         child: ListView(
                           scrollDirection: Axis.horizontal,
                           children: [
-                            _buildTaalImage('assets/images/taal_volcano2.jpg'),
-                            _buildTaalImage('assets/images/taal_volcano3.jpg'),
-                            _buildTaalImage('assets/images/taal_volcano4.jpg'),
-                            _buildTaalImage('assets/images/taal_volcano5.jpg'),
-                            _buildTaalImage('assets/images/taal_volcano6.jpg'),
-                            _buildTaalImage('assets/images/taal_volcano7.jpg'),
+                            _buildTaalImage('images/philpic.jpg'),
+                            _buildTaalImage('images/philpic.jpg'),
+                            _buildTaalImage('images/philpic.jpg'),
+                            _buildTaalImage('images/philpic.jpg'),
+                            _buildTaalImage('images/philpic.jpg'),
+                            _buildTaalImage('images/philpic.jpg'),
                           ],
                         ),
                       ),

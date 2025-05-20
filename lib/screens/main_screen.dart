@@ -6,14 +6,23 @@ import 'profile_tab.dart';
 import 'puzzles_tab.dart';
 
 class MainScreen extends StatefulWidget {
-  const MainScreen({super.key});
+  final int? initialTab;
+  
+  const MainScreen({super.key, this.initialTab});
 
   @override
   State<MainScreen> createState() => _MainScreenState();
 }
 
 class _MainScreenState extends State<MainScreen> {
-  int _currentIndex = 0;
+  late int _currentIndex;
+
+  @override
+  void initState() {
+    super.initState();
+    // Use initialTab if provided, otherwise default to 0 (Home tab)
+    _currentIndex = widget.initialTab ?? 0;
+  }
 
   // List of pages corresponding to each bottom navigation item.
   final List<Widget> _pages = const [

@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'category_detail_screen.dart';
 import 'heroes_screen.dart';
+import 'traditions_quiz_screen.dart';
+import 'history_quiz_screen.dart';
 import 'dart:math' as math;
 
 class QuizzesTab extends StatelessWidget {
@@ -36,6 +38,88 @@ class QuizzesTab extends StatelessWidget {
           },
         ),
       );
+    } else if (category == 'Traditions') {
+      // Show dialog to choose region or random
+      showDialog(
+        context: context,
+        builder: (context) {
+          return SimpleDialog(
+            title: const Text('Choose a Region'),
+            children: [
+              SimpleDialogOption(
+                onPressed: () => Navigator.pop(context, 'Luzon'),
+                child: const Text('Luzon Traditions'),
+              ),
+              SimpleDialogOption(
+                onPressed: () => Navigator.pop(context, 'Visayas'),
+                child: const Text('Visayas Traditions'),
+              ),
+              SimpleDialogOption(
+                onPressed: () => Navigator.pop(context, 'Mindanao'),
+                child: const Text('Mindanao Traditions'),
+              ),
+              const Divider(),
+              SimpleDialogOption(
+                onPressed: () => Navigator.pop(context, 'Random'),
+                child: const Text('Random Traditions Quiz'),
+              ),
+            ],
+          );
+        },
+      ).then((selected) {
+        if (selected != null) {
+          Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (context) => TraditionsQuizScreen(
+                region: selected == 'Random' ? null : selected,
+                isRandom: selected == 'Random',
+              ),
+            ),
+          );
+        }
+      });
+    } else if (category == 'History') {
+      // Show dialog to choose region or random
+      showDialog(
+        context: context,
+        builder: (context) {
+          return SimpleDialog(
+            title: const Text('Choose a Region'),
+            children: [
+              SimpleDialogOption(
+                onPressed: () => Navigator.pop(context, 'Luzon'),
+                child: const Text('Luzon History'),
+              ),
+              SimpleDialogOption(
+                onPressed: () => Navigator.pop(context, 'Visayas'),
+                child: const Text('Visayas History'),
+              ),
+              SimpleDialogOption(
+                onPressed: () => Navigator.pop(context, 'Mindanao'),
+                child: const Text('Mindanao History'),
+              ),
+              const Divider(),
+              SimpleDialogOption(
+                onPressed: () => Navigator.pop(context, 'Random'),
+                child: const Text('Random History Quiz'),
+              ),
+            ],
+          );
+        },
+      ).then((selected) {
+        if (selected != null) {
+          Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (context) => HistoryQuizScreen(
+                region: selected == 'Random' ? null : selected,
+                isRandom: selected == 'Random',
+              ),
+            ),
+          );
+        }
+      });
     } else {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(

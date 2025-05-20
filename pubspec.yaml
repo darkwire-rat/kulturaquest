@@ -26,6 +26,7 @@ dev_dependencies:
     sdk: flutter
   flutter_lints: ^5.0.0
   flutter_native_splash: ^2.2.12  # For splash screen
+  flutter_launcher_icons: ^0.13.1  # For app icon
 
 flutter:
   uses-material-design: true
@@ -36,6 +37,9 @@ flutter:
     - assets/foods/
     - assets/culture/
     - assets/festivals/
+    # Add Luzon images and other direct image paths
+    - images/
+    - images/luzon/
 
 
 
@@ -47,10 +51,11 @@ flutter_native_splash:  ## U cant see this on dart code, since this is here lang
   android: true
   ios: true
 
-flutter_icons:
-android: true
-ios: true
-image_path: assets/images/kul.png
+flutter_launcher_icons:
+  android: "launcher_icon"
+  ios: true
+  image_path: "assets/images/kul.png"  # Corrected path to match existing assets
+  adaptive_icon_background: "#FFFFFF"  # White background for adaptive icons
 
 
 

@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
 import '../models/achievement_models.dart';
 import '../services/achievements_service.dart';
+import '../utils/quiz_score_calculator.dart';
+import 'president_quiz_screen.dart';
+import 'hero_quiz_screen.dart';
 
 class AchievementsScreen extends StatefulWidget {
   const AchievementsScreen({super.key});
@@ -140,8 +143,9 @@ class _AchievementsScreenState extends State<AchievementsScreen> with SingleTick
   }
 
   Widget _buildClusterHeader(AchievementCluster cluster) {
-    final completionPercentage = cluster.completionPercentage;
-    final percentComplete = (completionPercentage * 100).round();
+    // Cap the completion percentage at 1.0 (100%)
+    final completionPercentage = cluster.completionPercentage > 1.0 ? 1.0 : cluster.completionPercentage;
+    final percentComplete = ((completionPercentage * 100).round() > 100) ? 100 : (completionPercentage * 100).round(); // Ensure percentage never exceeds 100%
     
     return Card(
       elevation: 4,
@@ -212,7 +216,7 @@ class _AchievementsScreenState extends State<AchievementsScreen> with SingleTick
                       const Text('Total Score', style: TextStyle(fontSize: 12)),
                       const SizedBox(height: 4),
                       Text(
-                        '${cluster.totalScore}/${cluster.maxPossibleScore}',
+                        '${cluster.totalScore}/${_getMaxCategoryScore(cluster.id)}',
                         style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
                       ),
                     ],
@@ -224,7 +228,8 @@ class _AchievementsScreenState extends State<AchievementsScreen> with SingleTick
               ClipRRect(
                 borderRadius: BorderRadius.circular(10),
                 child: LinearProgressIndicator(
-                  value: completionPercentage,
+                  // Ensure progress bar value never exceeds 1.0 (100%)
+                  value: completionPercentage.clamp(0.0, 1.0),
                   minHeight: 10,
                   backgroundColor: Colors.grey[200],
                   valueColor: AlwaysStoppedAnimation<Color>(cluster.color),
@@ -387,7 +392,7 @@ class _AchievementsScreenState extends State<AchievementsScreen> with SingleTick
                 crossAxisAlignment: CrossAxisAlignment.end,
                 children: [
                   Text(
-                    '${achievement.userScore}/${achievement.maxScore}',
+                    '${achievement.userScore}/${achievement.maxScore}', // Show score as fraction
                     style: TextStyle(
                       fontSize: 16,
                       fontWeight: FontWeight.bold,
@@ -395,23 +400,31 @@ class _AchievementsScreenState extends State<AchievementsScreen> with SingleTick
                     ),
                   ),
                   const SizedBox(height: 4),
-                  Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Icon(
-                        Icons.star,
-                        size: 14,
-                        color: achievement.isCompleted ? Colors.amber : Colors.grey[400],
-                      ),
-                      const SizedBox(width: 2),
-                      Text(
-                        '${(achievement.userScore / achievement.maxScore * 100).round()}%',
-                        style: TextStyle(
-                          fontSize: 12,
-                          color: achievement.isCompleted ? Colors.amber : Colors.grey[500],
-                        ),
-                      ),
-                    ],
+                  Builder(
+                    builder: (context) {
+                      final percentage = achievement.userScore >= achievement.maxScore ? 100 : ((achievement.userScore / achievement.maxScore) * 100).round();
+                      return Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          // Only show star if percentage is at least 80%
+                          if (percentage >= 80)
+                            Icon(
+                              Icons.star,
+                              size: 14,
+                              color: Colors.amber,
+                            ),
+                          if (percentage >= 80)
+                            const SizedBox(width: 2),
+                          Text(
+                            '$percentage%',
+                            style: TextStyle(
+                              fontSize: 12,
+                              color: percentage >= 80 ? Colors.amber : Colors.grey[500],
+                            ),
+                          ),
+                        ],
+                      );
+                    },
                   ),
                 ],
               ),
@@ -425,8 +438,9 @@ class _AchievementsScreenState extends State<AchievementsScreen> with SingleTick
   void _showAchievementDetails(AchievementCluster cluster, AchievementSubcategory subcategory, Achievement achievement) {
     showModalBottomSheet(
       context: context,
+      isScrollControlled: true,
       shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
       ),
       builder: (context) => _AchievementDetailsSheet(
         cluster: cluster,
@@ -435,6 +449,19 @@ class _AchievementsScreenState extends State<AchievementsScreen> with SingleTick
       ),
     );
   }
+  
+  // Helper method to get the maximum score for each category based on requirements
+  int _getMaxCategoryScore(String categoryId) {
+    // Maximum possible scores for each category based on requirements
+    final Map<String, int> maxCategoryScores = {
+      'history': 31,     // 7 points each for 3 regional quizzes + 10 for grand scholar
+      'traditions': 31,   // 7 points each for 3 regional quizzes + 10 for grand master
+      'heroes': 20,       // 5 points each for 4 national heroes quizzes
+      'presidents': 20,   // 5 points each for 4 early republic quizzes
+    };
+    
+    return maxCategoryScores[categoryId] ?? 100;
+  }
 }
 
 // Method to navigate to the appropriate challenge based on achievement ID
@@ -442,31 +469,28 @@ void _navigateToChallenge(BuildContext context, String clusterId, String subcate
   // Heroes Cluster
   if (clusterId == 'heroes') {
     if (subcategoryId == 'national_heroes') {
-      if (achievementId == 'rizal_quiz') {
-        Navigator.pushNamed(context, '/hero-quiz', arguments: {
-          'heroName': 'Jose Rizal',
-          'quizTitle': 'Jose Rizal Quiz',
-        });
-      } else if (achievementId == 'bonifacio_quiz') {
-        Navigator.pushNamed(context, '/hero-quiz', arguments: {
-          'heroName': 'Andres Bonifacio',
-          'quizTitle': 'Andres Bonifacio Quiz',
-        });
-      } else if (achievementId == 'luna_quiz') {
-        Navigator.pushNamed(context, '/hero-quiz', arguments: {
-          'heroName': 'Antonio Luna',
-          'quizTitle': 'Antonio Luna Quiz',
-        });
-      } else if (achievementId == 'mabini_quiz') {
-        Navigator.pushNamed(context, '/hero-quiz', arguments: {
-          'heroName': 'Apolinario Mabini',
-          'quizTitle': 'Apolinario Mabini Quiz',
-        });
-      } else if (achievementId == 'jacinto_quiz') {
-        Navigator.pushNamed(context, '/hero-quiz', arguments: {
-          'heroName': 'Emilio Jacinto',
-          'quizTitle': 'Emilio Jacinto Quiz',
-        });
+      // Map achievementId to heroName and quizTitle
+      final heroMap = {
+        'rizal_quiz': {'name': 'Jose Rizal', 'quizTitle': 'Jose Rizal Quiz'},
+        'bonifacio_quiz': {'name': 'Andres Bonifacio', 'quizTitle': 'Andres Bonifacio Quiz'},
+        'luna_quiz': {'name': 'Antonio Luna', 'quizTitle': 'Antonio Luna Quiz'},
+        'mabini_quiz': {'name': 'Apolinario Mabini', 'quizTitle': 'Apolinario Mabini Quiz'},
+        'jacinto_quiz': {'name': 'Emilio Jacinto', 'quizTitle': 'Emilio Jacinto Quiz'},
+      };
+      
+      // Directly navigate to the hero's quiz
+      if (heroMap.containsKey(achievementId)) {
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (context) => HeroQuizScreen(
+              heroName: heroMap[achievementId]!['name']!,
+              quizTitle: heroMap[achievementId]!['quizTitle']!,
+            ),
+          ),
+        );
+      } else {
+        _showComingSoonMessage(context);
       }
     } else {
       // For other hero subcategories
@@ -475,11 +499,27 @@ void _navigateToChallenge(BuildContext context, String clusterId, String subcate
   }
   // Presidents Cluster
   else if (clusterId == 'presidents') {
-    if (achievementId.contains('aguinaldo')) {
-      Navigator.pushNamed(context, '/president-detail', arguments: {
-        'presidentName': 'Emilio Aguinaldo',
-        'showQuiz': true,
-      });
+    // Map achievementId to presidentName and quizTitle
+    final presidentMap = {
+      'aguinaldo_quiz': {'name': 'Emilio Aguinaldo', 'quizTitle': 'Emilio Aguinaldo Quiz'},
+      'quezon_quiz': {'name': 'Manuel L. Quezon', 'quizTitle': 'Manuel L. Quezon Quiz'},
+      'magsaysay_quiz': {'name': 'Ramon Magsaysay', 'quizTitle': 'Ramon Magsaysay Quiz'},
+      'marcos_quiz': {'name': 'Ferdinand Marcos', 'quizTitle': 'Ferdinand Marcos Quiz'},
+      'aquino_quiz': {'name': 'Corazon Aquino', 'quizTitle': 'Corazon Aquino Quiz'},
+      'modern_presidents_quiz': {'name': 'Modern Presidents', 'quizTitle': 'Modern Presidents Scholar'},
+    };
+    
+    // Directly navigate to the president's quiz
+    if (presidentMap.containsKey(achievementId)) {
+      Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (context) => PresidentQuizScreen(
+            presidentName: presidentMap[achievementId]!['name']!,
+            quizTitle: presidentMap[achievementId]!['quizTitle']!,
+          ),
+        ),
+      );
     } else {
       _showComingSoonMessage(context);
     }
@@ -514,6 +554,19 @@ class _AchievementDetailsSheet extends StatelessWidget {
     required this.subcategory,
     required this.achievement,
   });
+  
+  // Helper method to get the maximum score for each category based on requirements
+  int _getMaxCategoryScore(String categoryId) {
+    // Maximum possible scores for each category based on requirements
+    final Map<String, int> maxCategoryScores = {
+      'history': 31,     // 7 points each for 3 regional quizzes + 10 for grand scholar
+      'traditions': 31,   // 7 points each for 3 regional quizzes + 10 for grand master
+      'heroes': 20,       // 5 points each for 4 national heroes quizzes
+      'presidents': 20,   // 5 points each for 4 early republic quizzes
+    };
+    
+    return maxCategoryScores[categoryId] ?? 100;
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -570,7 +623,8 @@ class _AchievementDetailsSheet extends StatelessWidget {
           const Text('Progress', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
           const SizedBox(height: 8),
           LinearProgressIndicator(
-            value: achievement.userScore / achievement.maxScore,
+            // If user has achieved the max score, show full progress bar (capped at 1.0)
+            value: achievement.userScore >= achievement.maxScore ? 1.0 : (achievement.userScore / achievement.maxScore).clamp(0.0, 1.0),
             minHeight: 12,
             backgroundColor: Colors.grey[200],
             valueColor: AlwaysStoppedAnimation<Color>(cluster.color),
@@ -579,12 +633,29 @@ class _AchievementDetailsSheet extends StatelessWidget {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Text(
-                '${(achievement.userScore / achievement.maxScore * 100).round()}% Complete',
-                style: const TextStyle(fontSize: 14),
+              Builder(
+                builder: (context) {
+                  final percentage = (achievement.userScore >= achievement.maxScore) ? 100 : ((achievement.userScore / achievement.maxScore) * 100).round();
+                  return Row(
+                    children: [
+                      // Only show star if percentage is at least 80%
+                      if (percentage >= 80)
+                        Icon(Icons.star, size: 14, color: Colors.amber),
+                      if (percentage >= 80)
+                        const SizedBox(width: 4),
+                      Text(
+                        '$percentage% Complete',
+                        style: TextStyle(
+                          fontSize: 14,
+                          color: percentage >= 80 ? Colors.amber : Colors.grey[700],
+                        ),
+                      ),
+                    ],
+                  );
+                },
               ),
               Text(
-                '${achievement.userScore}/${achievement.maxScore} Points',
+                '${achievement.userScore}/${achievement.maxScore} Points', // Show score as fraction
                 style: const TextStyle(fontSize: 14, fontWeight: FontWeight.bold),
               ),
             ],

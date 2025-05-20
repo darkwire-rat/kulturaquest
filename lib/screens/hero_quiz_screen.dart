@@ -18,9 +18,12 @@ class HeroQuizScreen extends StatefulWidget {
 class _HeroQuizScreenState extends State<HeroQuizScreen> {
   int _currentQuestionIndex = 0;
   int _score = 0;
+  int _currentCorrectAnswers = 0;
+  double _currentPercentage = 0.0;
   bool _quizCompleted = false;
   List<Map<String, dynamic>> _questions = [];
   List<int> _userAnswers = [];
+  List<bool> _answerCorrectness = [];
   
   // Achievement related data
   final AchievementsService _achievementsService = AchievementsService();
@@ -90,11 +93,15 @@ class _HeroQuizScreenState extends State<HeroQuizScreen> {
     try {
       // Only update if the new score is higher than the previous high score
       if (newScore > _previousHighScore) {
+        // Calculate achievement score on a 5-point scale for national heroes quizzes
+        final achievementScore = (_questions.isEmpty) ? 0 : 
+            (newScore / 100 * 5).round(); // Convert percentage score to 5-point scale
+        
         await _achievementsService.updateAchievement(
           _achievementClusterId,
           _achievementSubcategoryId,
           _achievementId,
-          score: newScore,
+          score: achievementScore, // Use the 5-point scale
           completed: newScore >= 80, // Consider completed if score is 80% or higher
         );
         
@@ -361,8 +368,9 @@ class _HeroQuizScreenState extends State<HeroQuizScreen> {
       ];
     }
 
-    // Initialize user answers
+    // Initialize user answers and answer correctness tracking
     _userAnswers = List.filled(_questions.length, -1);
+    _answerCorrectness = List.filled(_questions.length, false);
   }
 
   void _selectAnswer(int optionIndex) {
@@ -370,6 +378,28 @@ class _HeroQuizScreenState extends State<HeroQuizScreen> {
 
     setState(() {
       _userAnswers[_currentQuestionIndex] = optionIndex;
+      
+      // Check if answer is correct and update running score
+      bool isCorrect = optionIndex == _questions[_currentQuestionIndex]['correctIndex'];
+      _answerCorrectness[_currentQuestionIndex] = isCorrect;
+      
+      // Update current correct answers count
+      _currentCorrectAnswers = _answerCorrectness.where((correct) => correct).length;
+      
+      // Calculate current percentage (based on questions answered so far)
+      _currentPercentage = (_currentCorrectAnswers / _questions.length) * 100;
+      
+      // Show feedback toast
+      ScaffoldMessenger.of(context).hideCurrentSnackBar();
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            isCorrect ? 'Correct! 🎉' : 'Incorrect. The correct answer was option ${String.fromCharCode(65 + (_questions[_currentQuestionIndex]['correctIndex'] as int))}',
+          ),
+          backgroundColor: isCorrect ? Colors.green.shade700 : Colors.red.shade700,
+          duration: const Duration(seconds: 1),
+        ),
+      );
     });
   }
 
@@ -392,6 +422,26 @@ class _HeroQuizScreenState extends State<HeroQuizScreen> {
         _quizCompleted = true;
       });
     }
+    
+    // Update the running score in real-time
+    _updateRunningScore();
+  }
+  
+  void _updateRunningScore() {
+    // Calculate current score based on questions answered so far
+    int answeredCount = _userAnswers.where((answer) => answer != -1).length;
+    int correctCount = 0;
+    
+    for (int i = 0; i < answeredCount; i++) {
+      if (_userAnswers[i] == _questions[i]['correctIndex']) {
+        correctCount++;
+      }
+    }
+    
+    setState(() {
+      _currentCorrectAnswers = correctCount;
+      _currentPercentage = (correctCount / _questions.length) * 100;
+    });
   }
 
   void _calculateScore() async {
@@ -436,12 +486,61 @@ class _HeroQuizScreenState extends State<HeroQuizScreen> {
 
   Widget _buildQuizScreen() {
     final currentQuestion = _questions[_currentQuestionIndex];
+    final selectedAnswer = _userAnswers[_currentQuestionIndex];
     
     return Padding(
       padding: const EdgeInsets.all(16.0),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
+          // Score and question counter row
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              // Current score
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                decoration: BoxDecoration(
+                  color: Colors.amber.shade100,
+                  borderRadius: BorderRadius.circular(20),
+                  border: Border.all(color: Colors.amber.shade300),
+                ),
+                child: Row(
+                  children: [
+                    Icon(Icons.emoji_events, size: 16, color: Colors.amber.shade800),
+                    const SizedBox(width: 4),
+                    Text(
+                      'Score: ${_currentCorrectAnswers}/${_questions.length} (${_currentPercentage.toStringAsFixed(0)}%)',
+                      style: TextStyle(
+                        fontSize: 14,
+                        fontWeight: FontWeight.w500,
+                        color: Colors.amber.shade900,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            
+              // Question counter
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                decoration: BoxDecoration(
+                  color: Colors.red.shade100,
+                  borderRadius: BorderRadius.circular(20),
+                ),
+                child: Text(
+                  'Question ${_currentQuestionIndex + 1}/${_questions.length}',
+                  style: TextStyle(
+                    fontSize: 14,
+                    fontWeight: FontWeight.w500,
+                    color: Colors.red.shade900,
+                  ),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 16),
+          
           // Progress indicator
           LinearProgressIndicator(
             value: (_currentQuestionIndex + 1) / _questions.length,

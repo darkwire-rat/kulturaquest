@@ -75,18 +75,17 @@ class AchievementsService {
             String achievementKey = 'achievement_${clusterId}_${subcatId}_${achievement.id}';
             
             // Check if we have data for this achievement
-            if (prefs.containsKey('${achievementKey}_score')) {
-              int score = prefs.getInt('${achievementKey}_score') ?? 0;
+            if (prefs.containsKey('${achievementKey}_userScore')) {
+              int score = prefs.getInt('${achievementKey}_userScore') ?? 0;
               // Update achievement with a copy containing the new score
-              int index = clusters[i].subcategories[j].achievements.indexOf(achievement);
               clusters[i].subcategories[j].achievements[k] = achievement.copyWith(userScore: score);
             }
             
             if (prefs.containsKey('${achievementKey}_completed')) {
               bool completed = prefs.getBool('${achievementKey}_completed') ?? false;
               // Update achievement with a copy containing the new completion status
-              int index = clusters[i].subcategories[j].achievements.indexOf(achievement);
-              clusters[i].subcategories[j].achievements[k] = achievement.copyWith(isCompleted: completed);
+              clusters[i].subcategories[j].achievements[k] = 
+                  clusters[i].subcategories[j].achievements[k].copyWith(isCompleted: completed);
             }
           }
         }
@@ -99,53 +98,56 @@ class AchievementsService {
     }
   }
   
-  // Merge user achievements from Firestore with defaults
+  // Merge user achievements from Firestore with default achievements
   Future<List<AchievementCluster>> _mergeUserAchievementsWithDefaults(
       Map<String, dynamic> userData, List<AchievementCluster> defaultClusters) async {
     try {
+      // Create a deep copy of default clusters that we'll update with user data
       List<AchievementCluster> mergedClusters = List.from(defaultClusters);
-      List<dynamic> userClusters = userData['clusters'] ?? [];
       
-      // For each user cluster, find the matching default cluster and update its achievements
-      for (var userCluster in userClusters) {
-        String clusterId = userCluster['id'];
-        int clusterIndex = mergedClusters.indexWhere((c) => c.id == clusterId);
+      // Safely access individual achievement data instead of relying on nested structures
+      // This avoids issues with the data format (Map vs List)
+      Map<String, dynamic> achievementData = {};
+      
+      // Extract all achievement data into a flat map for easier access
+      if (userData.containsKey('achievements') && userData['achievements'] != null) {
+        achievementData = Map<String, dynamic>.from(userData['achievements']);
+      }
+      
+      // Update each achievement in our default clusters if we have user data for it
+      for (int i = 0; i < mergedClusters.length; i++) {
+        final cluster = mergedClusters[i];
         
-        if (clusterIndex != -1) {
-          List<dynamic> userSubcats = userCluster['subcategories'] ?? [];
+        for (int j = 0; j < cluster.subcategories.length; j++) {
+          final subcategory = cluster.subcategories[j];
           
-          // Process each subcategory
-          for (var userSubcat in userSubcats) {
-            String subcatId = userSubcat['id'];
-            int subcatIndex = mergedClusters[clusterIndex].subcategories.indexWhere((s) => s.id == subcatId);
+          for (int k = 0; k < subcategory.achievements.length; k++) {
+            final achievement = subcategory.achievements[k];
+            final achievementKey = '${cluster.id}_${subcategory.id}_${achievement.id}';
             
-            if (subcatIndex != -1) {
-              List<dynamic> userAchievements = userSubcat['achievements'] ?? [];
+            // Check if we have user data for this specific achievement
+            if (achievementData.containsKey(achievementKey)) {
+              final userData = achievementData[achievementKey];
               
-              // Process each achievement
-              for (var userAchievement in userAchievements) {
-                String achievementId = userAchievement['id'];
-                int achievementIndex = mergedClusters[clusterIndex].subcategories[subcatIndex].achievements
-                    .indexWhere((a) => a.id == achievementId);
-                
-                if (achievementIndex != -1) {
-                  // Update the achievement data with user progress
-                  Achievement achievement = mergedClusters[clusterIndex].subcategories[subcatIndex].achievements[achievementIndex];
-                  
-                  if (userAchievement.containsKey('score')) {
-                    // Update achievement with a copy containing the user score
-                    int achievementIdx = mergedClusters[clusterIndex].subcategories[subcatIndex].achievements.indexOf(achievement);
-                    mergedClusters[clusterIndex].subcategories[subcatIndex].achievements[achievementIndex] = 
-                        achievement.copyWith(userScore: userAchievement['score']);
-                  }
-                  
-                  if (userAchievement.containsKey('completed')) {
-                    // Update achievement with a copy containing the completion status
-                    int achievementIdx = mergedClusters[clusterIndex].subcategories[subcatIndex].achievements.indexOf(achievement);
-                    mergedClusters[clusterIndex].subcategories[subcatIndex].achievements[achievementIndex] = 
-                        achievement.copyWith(isCompleted: userAchievement['completed']);
-                  }
+              // Extract score and completion status
+              int? userScore;
+              bool? isCompleted;
+              
+              if (userData is Map<String, dynamic>) {
+                if (userData.containsKey('userScore')) {
+                  userScore = userData['userScore'] as int?;
                 }
+                if (userData.containsKey('isCompleted')) {
+                  isCompleted = userData['isCompleted'] as bool?;
+                }
+              }
+              
+              // Update the achievement with user progress
+              if (userScore != null || isCompleted != null) {
+                mergedClusters[i].subcategories[j].achievements[k] = achievement.copyWith(
+                  userScore: userScore ?? achievement.userScore,
+                  isCompleted: isCompleted ?? achievement.isCompleted,
+                );
               }
             }
           }
@@ -165,16 +167,16 @@ class AchievementsService {
   // Save all achievements to local storage
   Future<void> _saveAllToLocalStorage(List<AchievementCluster> clusters) async {
     try {
-      for (var cluster in clusters) {
-        for (var subcategory in cluster.subcategories) {
-          for (var achievement in subcategory.achievements) {
-            await _saveToLocalStorage(
-              cluster.id,
-              subcategory.id,
-              achievement.id,
-              achievement.userScore,
-              achievement.isCompleted
-            );
+      final prefs = await SharedPreferences.getInstance();
+      
+      for (final cluster in clusters) {
+        for (final subcategory in cluster.subcategories) {
+          for (final achievement in subcategory.achievements) {
+            String achievementKey = 'achievement_${cluster.id}_${subcategory.id}_${achievement.id}';
+            
+            await prefs.setInt('${achievementKey}_userScore', achievement.userScore);
+            await prefs.setBool('${achievementKey}_completed', achievement.isCompleted);
+            await prefs.setInt('${achievementKey}_lastUpdated', DateTime.now().millisecondsSinceEpoch);
           }
         }
       }
@@ -188,81 +190,79 @@ class AchievementsService {
     final userAchievementsDoc = _userAchievementsDoc;
     if (userAchievementsDoc == null) return;
     
-    // Create a simple data structure to store user achievement progress
-    // This would be expanded in a real implementation
+    // Create a flat map of achievements for easier storage
     final Map<String, dynamic> achievementsData = {
+      'achievements': {},
       'lastUpdated': FieldValue.serverTimestamp(),
-      'clusters': clusters.map((cluster) => {
-        'id': cluster.id,
-        'subcategories': cluster.subcategories.map((subcat) => {
-          'id': subcat.id,
-          'achievements': subcat.achievements.map((achievement) => {
-            'id': achievement.id,
-            'completed': false,
-            'score': 0,
-          }).toList(),
-        }).toList(),
-      }).toList(),
     };
+    
+    // Also save to local storage
+    await _saveAllToLocalStorage(clusters);
     
     await userAchievementsDoc.set(achievementsData);
   }
-  
+
   // Update achievement progress
   Future<void> updateAchievement(String clusterId, String subcategoryId, String achievementId, {int? score, bool? completed}) async {
-    final userAchievementsDoc = _userAchievementsDoc;
-    if (userAchievementsDoc == null) return;
-    
     try {
-      // Get the current data first
-      final docSnapshot = await userAchievementsDoc.get();
-      if (!docSnapshot.exists) {
-        // Initialize if not exists
-        await _initializeUserAchievements(_getDefaultAchievementClusters());
-        return updateAchievement(clusterId, subcategoryId, achievementId, score: score, completed: completed);
-      }
+      // Get current user ID
+      final userId = _currentUserId;
       
-      // Update the specific achievement in the nested structure
-      final data = docSnapshot.data() as Map<String, dynamic>;
-      final List<dynamic> clusters = data['clusters'] ?? [];
+      // Create a unique key for this achievement
+      final achievementKey = '${clusterId}_${subcategoryId}_${achievementId}';
       
-      // Find the cluster index
-      int clusterIndex = clusters.indexWhere((c) => c['id'] == clusterId);
-      if (clusterIndex == -1) return;
-      
-      // Find the subcategory index
-      final List<dynamic> subcategories = clusters[clusterIndex]['subcategories'] ?? [];
-      int subcatIndex = subcategories.indexWhere((s) => s['id'] == subcategoryId);
-      if (subcatIndex == -1) return;
-      
-      // Find the achievement index
-      final List<dynamic> achievements = subcategories[subcatIndex]['achievements'] ?? [];
-      int achievementIndex = achievements.indexWhere((a) => a['id'] == achievementId);
-      if (achievementIndex == -1) return;
-      
-      // Build update path
-      String updatePath = 'clusters.$clusterIndex.subcategories.$subcatIndex.achievements.$achievementIndex';
-      
-      // Prepare update data
-      Map<String, dynamic> updateData = {
-        'lastUpdated': FieldValue.serverTimestamp()
-      };
-      
-      // Add score update if provided
-      if (score != null) {
-        updateData['$updatePath.score'] = score;
-      }
-      
-      // Add completion update if provided
-      if (completed != null) {
-        updateData['$updatePath.completed'] = completed;
-      }
-      
-      await userAchievementsDoc.update(updateData);
-      
-      // Also save to local storage for offline access
+      // Always update local storage first for immediate feedback
       await _saveToLocalStorage(clusterId, subcategoryId, achievementId, score, completed);
       
+      // If not logged in, we're done
+      if (userId == null) {
+        return;
+      }
+      
+      // Get user achievements document
+      final userAchievementsDoc = _userAchievementsDoc;
+      if (userAchievementsDoc == null) {
+        return;
+      }
+      
+      // Get current achievements data
+      final docSnapshot = await userAchievementsDoc.get();
+      Map<String, dynamic> userData = {};
+      
+      if (docSnapshot.exists) {
+        userData = docSnapshot.data() as Map<String, dynamic>;
+      }
+      
+      // Initialize achievements map if it doesn't exist
+      if (!userData.containsKey('achievements')) {
+        userData['achievements'] = <String, dynamic>{};
+      }
+      
+      // Get existing achievement data or create new entry
+      Map<String, dynamic> achievementData = {};
+      if (userData['achievements'].containsKey(achievementKey)) {
+        achievementData = Map<String, dynamic>.from(userData['achievements'][achievementKey]);
+      }
+      
+      // Update with new data, but only if the score is higher than existing score
+      if (score != null) {
+        final existingScore = achievementData['userScore'] as int? ?? 0;
+        if (score > existingScore) {
+          achievementData['userScore'] = score;
+        }
+      }
+      
+      if (completed != null) {
+        achievementData['isCompleted'] = completed;
+      }
+      
+      // Store back in the userData map
+      userData['achievements'][achievementKey] = achievementData;
+      
+      // Save to Firestore
+      await userAchievementsDoc.set(userData);
+      
+      print('Successfully updated achievement: $achievementKey with score: $score, completed: $completed');
     } catch (e) {
       print('Error updating achievement: $e');
     }
@@ -273,12 +273,15 @@ class AchievementsService {
     try {
       final prefs = await SharedPreferences.getInstance();
       
-      // Create a key that uniquely identifies this achievement
+      // Create a key for this achievement
       String achievementKey = 'achievement_${clusterId}_${subcategoryId}_${achievementId}';
       
-      // Save the score if provided
+      // Save score if provided, but only if it's higher than the existing score
       if (score != null) {
-        await prefs.setInt('${achievementKey}_score', score);
+        final existingScore = prefs.getInt('${achievementKey}_userScore') ?? 0;
+        if (score > existingScore) {
+          await prefs.setInt('${achievementKey}_userScore', score);
+        }
       }
       
       // Save completion status if provided
@@ -286,13 +289,8 @@ class AchievementsService {
         await prefs.setBool('${achievementKey}_completed', completed);
       }
       
-      // Save last update timestamp
+      // Also save the last update timestamp
       await prefs.setInt('${achievementKey}_lastUpdated', DateTime.now().millisecondsSinceEpoch);
-      
-      // Also save the userId so we know whose data this is
-      if (_currentUserId != null) {
-        await prefs.setString('${achievementKey}_userId', _currentUserId!);
-      }
     } catch (e) {
       print('Error saving achievement to local storage: $e');
     }
@@ -305,53 +303,88 @@ class AchievementsService {
       AchievementCluster(
         id: 'history',
         title: 'Philippine History',
-        description: 'Achievements related to Philippine historical events and periods',
+        description: 'Achievements related to Philippine historical events and milestones',
         color: const Color(0xFF5D8CAE), // Blue
         iconPath: 'assets/images/history_icon.png',
         subcategories: [
           AchievementSubcategory(
-            id: 'pre_colonial',
-            title: 'Pre-Colonial Era',
-            description: 'Life before Spanish colonization',
-            iconPath: 'assets/images/precolonial_icon.png',
+            id: 'regional_history',
+            title: 'Regional History',
+            description: 'Historical achievements from different regions',
+            iconPath: 'assets/images/history_icon.png',
             achievements: [
               Achievement(
-                id: 'precolonial_quiz',
-                title: 'Pre-Colonial Expert',
-                description: 'Complete the Pre-Colonial Era quiz with perfect score',
-                maxScore: 100,
+                id: 'luzon_history_quiz',
+                title: 'Luzon History Scholar',
+                description: 'Complete the Luzon history quiz with at least 80% accuracy',
+                maxScore: 7,
               ),
               Achievement(
-                id: 'ancient_artifacts',
-                title: 'Ancient Artifacts',
-                description: 'Identify all ancient Philippine artifacts',
-                maxScore: 50,
-              ),
-            ],
-          ),
-          AchievementSubcategory(
-            id: 'spanish_era',
-            title: 'Spanish Colonial Period',
-            description: '1521-1898: Life under Spanish rule',
-            iconPath: 'assets/images/spanish_icon.png',
-            achievements: [
-              Achievement(
-                id: 'spanish_quiz',
-                title: 'Spanish Era Scholar',
-                description: 'Complete the Spanish Era quiz with 80% accuracy',
-                maxScore: 80,
+                id: 'visayas_history_quiz',
+                title: 'Visayas History Scholar',
+                description: 'Complete the Visayas history quiz with at least 80% accuracy',
+                maxScore: 7,
               ),
               Achievement(
-                id: 'revolution_timeline',
-                title: 'Revolution Timeline Master',
-                description: 'Correctly order all events of the Philippine Revolution',
-                maxScore: 100,
+                id: 'mindanao_history_quiz',
+                title: 'Mindanao History Scholar',
+                description: 'Complete the Mindanao history quiz with at least 80% accuracy',
+                maxScore: 7,
+              ),
+              Achievement(
+                id: 'history_grand_scholar',
+                title: 'History Grand Scholar',
+                description: 'Complete all regional history quizzes with perfect scores',
+                maxScore: 10,
               ),
             ],
           ),
         ],
       ),
-
+      
+      // TRADITIONS CLUSTER
+      AchievementCluster(
+        id: 'traditions',
+        title: 'Filipino Traditions',
+        description: 'Achievements related to Philippine cultural traditions and practices',
+        color: const Color(0xFFFFB74D), // Orange
+        iconPath: 'assets/images/traditions_icon.png',
+        subcategories: [
+          AchievementSubcategory(
+            id: 'regional_traditions',
+            title: 'Regional Traditions',
+            description: 'Traditional practices from different regions',
+            iconPath: 'assets/images/regional_traditions_icon.png',
+            achievements: [
+              Achievement(
+                id: 'luzon_traditions_quiz',
+                title: 'Luzon Traditions Expert',
+                description: 'Complete the Luzon traditions quiz with at least 80% accuracy',
+                maxScore: 7,
+              ),
+              Achievement(
+                id: 'visayas_traditions_quiz',
+                title: 'Visayas Traditions Expert',
+                description: 'Complete the Visayas traditions quiz with at least 80% accuracy',
+                maxScore: 7,
+              ),
+              Achievement(
+                id: 'mindanao_traditions_quiz',
+                title: 'Mindanao Traditions Expert',
+                description: 'Complete the Mindanao traditions quiz with at least 80% accuracy',
+                maxScore: 7,
+              ),
+              Achievement(
+                id: 'traditions_grand_master',
+                title: 'Traditions Grand Master',
+                description: 'Complete all regional traditions quizzes with perfect scores',
+                maxScore: 10,
+              ),
+            ],
+          ),
+        ],
+      ),
+      
       // HEROES CLUSTER
       AchievementCluster(
         id: 'heroes',
@@ -367,42 +400,34 @@ class AchievementsService {
             iconPath: 'assets/images/national_heroes_icon.png',
             achievements: [
               Achievement(
-                id: 'rizal_expert',
+                id: 'rizal_quiz',
                 title: 'Rizal Expert',
-                description: 'Complete all quizzes about Jose Rizal',
-                maxScore: 100,
+                description: 'Complete the quiz about Jose Rizal, the National Hero',
+                maxScore: 5,
               ),
               Achievement(
                 id: 'bonifacio_quiz',
                 title: 'Supremo Knowledge',
-                description: 'Answer all questions about Andres Bonifacio correctly',
-                maxScore: 75,
-              ),
-            ],
-          ),
-          AchievementSubcategory(
-            id: 'heroines',
-            title: 'Filipino Heroines',
-            description: 'Learn about the women who shaped Philippine history',
-            iconPath: 'assets/images/heroines_icon.png',
-            achievements: [
-              Achievement(
-                id: 'women_revolution',
-                title: 'Women of the Revolution',
-                description: 'Identify all the major female figures in the Philippine Revolution',
-                maxScore: 50,
+                description: 'Complete the quiz about Andres Bonifacio, Father of the Philippine Revolution',
+                maxScore: 5,
               ),
               Achievement(
-                id: 'modern_heroines',
-                title: 'Modern Heroines',
-                description: 'Complete the quiz on modern Filipino heroines',
-                maxScore: 60,
+                id: 'mabini_quiz',
+                title: 'Sublime Paralytic',
+                description: 'Complete the quiz about Apolinario Mabini, the Brains of the Revolution',
+                maxScore: 5,
+              ),
+              Achievement(
+                id: 'luna_quiz',
+                title: 'General Luna Scholar',
+                description: 'Complete the quiz about Antonio Luna, the fiery general',
+                maxScore: 5,
               ),
             ],
           ),
         ],
       ),
-
+      
       // PRESIDENTS CLUSTER
       AchievementCluster(
         id: 'presidents',
@@ -414,91 +439,53 @@ class AchievementsService {
           AchievementSubcategory(
             id: 'early_republic',
             title: 'Early Republic',
-            description: 'Presidents from Aguinaldo to Magsaysay',
+            description: 'Presidents from the First to Fourth Republic',
             iconPath: 'assets/images/early_republic_icon.png',
             achievements: [
               Achievement(
                 id: 'aguinaldo_quiz',
                 title: 'Emilio Aguinaldo Quiz',
-                description: 'Complete the quiz about the first Philippine President',
-                maxScore: 50,
+                description: 'Complete the quiz about the first Philippine President (1899-1901)',
+                maxScore: 5,
               ),
               Achievement(
-                id: 'commonwealth_presidents',
-                title: 'Commonwealth Era',
-                description: 'Identify all Commonwealth Era presidents and their contributions',
-                maxScore: 75,
+                id: 'quezon_quiz',
+                title: 'Manuel L. Quezon Quiz',
+                description: 'Complete the quiz about the Commonwealth President (1935-1944)',
+                maxScore: 5,
               ),
+
             ],
           ),
           AchievementSubcategory(
-            id: 'modern_presidents',
-            title: 'Modern Presidents',
-            description: 'Presidents from Marcos to present',
+            id: 'modern_era',
+            title: 'Modern Era',
+            description: 'Presidents from the Third Republic to Modern Times',
             iconPath: 'assets/images/modern_presidents_icon.png',
             achievements: [
               Achievement(
-                id: 'martial_law_quiz',
-                title: 'Martial Law Period',
-                description: 'Complete the Martial Law era quiz with 90% accuracy',
-                maxScore: 90,
+                id: 'magsaysay_quiz',
+                title: 'Ramon Magsaysay Quiz',
+                description: 'Complete the quiz about the Champion of the Common Man (1953-1957)',
+                maxScore: 5,
               ),
               Achievement(
-                id: 'democracy_restored',
-                title: 'Democracy Restored',
-                description: 'Learn about the transition back to democracy',
-                maxScore: 60,
-              ),
-            ],
-          ),
-        ],
-      ),
-
-      // TRADITIONS CLUSTER
-      AchievementCluster(
-        id: 'traditions',
-        title: 'Filipino Traditions',
-        description: 'Achievements related to cultural traditions and practices',
-        color: const Color(0xFFFFB74D), // Orange
-        iconPath: 'assets/images/traditions_icon.png',
-        subcategories: [
-          AchievementSubcategory(
-            id: 'festivals',
-            title: 'Filipino Festivals',
-            description: 'Celebrations across the Philippines',
-            iconPath: 'assets/images/festivals_icon.png',
-            achievements: [
-              Achievement(
-                id: 'major_festivals',
-                title: 'Festival Expert',
-                description: 'Match all major Filipino festivals to their correct regions',
-                maxScore: 100,
+                id: 'marcos_quiz',
+                title: 'Ferdinand Marcos Quiz',
+                description: 'Complete the quiz about the President during Martial Law (1965-1986)',
+                maxScore: 5,
               ),
               Achievement(
-                id: 'festival_meanings',
-                title: 'Festival Origins',
-                description: 'Learn the historical and cultural significance of key festivals',
-                maxScore: 75,
-              ),
-            ],
-          ),
-          AchievementSubcategory(
-            id: 'customs',
-            title: 'Filipino Customs',
-            description: 'Traditional practices and values',
-            iconPath: 'assets/images/customs_icon.png',
-            achievements: [
-              Achievement(
-                id: 'family_traditions',
-                title: 'Family Values',
-                description: 'Complete the quiz on Filipino family traditions',
-                maxScore: 50,
+                id: 'aquino_quiz',
+                title: 'Corazon Aquino Quiz',
+                description: 'Complete the quiz about the President after the EDSA Revolution (1986-1992)',
+                maxScore: 5,
               ),
               Achievement(
-                id: 'cultural_practices',
-                title: 'Cultural Practices',
-                description: 'Identify traditional practices from different regions',
-                maxScore: 80,
+                id: 'modern_presidents_quiz',
+                title: 'Modern Presidents Scholar',
+                description: 'Complete the quiz about Presidents from 1992 to present',
+                maxScore: 5,
               ),
             ],
           ),

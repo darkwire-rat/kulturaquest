@@ -66,7 +66,8 @@ class LanguageSelectionScreen extends StatelessWidget {
               ),
               const SizedBox(height: 20),
               
-              // Divider with text
+              // Optional: Comment out the button but keep as a placeholder for future reference
+              /* Removed Admin/Skip Login Button per request
               const Row(
                 children: [
                   Expanded(child: Divider(thickness: 1)),
@@ -79,12 +80,12 @@ class LanguageSelectionScreen extends StatelessWidget {
               ),
               const SizedBox(height: 20),
               
-              // Admin/Skip Login Button
               OutlinedButton.icon(
                 onPressed: () => _skipLogin(context),
                 icon: const Icon(Icons.admin_panel_settings_outlined),
                 label: const Text('Admin / Skip Login'),
               ),
+              */
             ],
           ),
         ),

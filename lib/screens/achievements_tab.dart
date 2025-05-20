@@ -1,6 +1,17 @@
 import 'package:flutter/material.dart';
+import 'dart:async';
+import 'dart:typed_data';
 import '../models/achievement_models.dart';
 import '../services/achievements_service.dart';
+import 'traditions_quiz_screen.dart';
+import 'history_quiz_screen.dart';
+import 'president_quiz_screen.dart';
+import 'hero_quiz_screen.dart';
+import '../utils/quiz_score_calculator.dart';
+import '../utils/overall_progress_calculator.dart';
+import '../services/certificate_service.dart';
+import 'package:printing/printing.dart';
+import 'package:pdf/pdf.dart';
 
 class AchievementsTab extends StatefulWidget {
   const AchievementsTab({super.key});
@@ -9,16 +20,38 @@ class AchievementsTab extends StatefulWidget {
   State<AchievementsTab> createState() => _AchievementsTabState();
 }
 
-class _AchievementsTabState extends State<AchievementsTab> with SingleTickerProviderStateMixin {
+// Stream controller for achievement updates - static so it can be accessed from quiz screens
+class AchievementUpdateController {
+  static final StreamController<void> _controller = StreamController<void>.broadcast();
+  static Stream<void> get stream => _controller.stream;
+  
+  // Call this method from quiz screens when achievements are updated
+  static void notifyAchievementsUpdated() {
+    _controller.add(null);
+  }
+  
+  static void dispose() {
+    _controller.close();
+  }
+}
+
+class _AchievementsTabState extends State<AchievementsTab> with TickerProviderStateMixin {
   final AchievementsService _achievementsService = AchievementsService();
   List<AchievementCluster> _clusters = [];
   bool _isLoading = true;
   late TabController _tabController;
+  late StreamSubscription<void> _achievementUpdateSubscription;
 
   @override
   void initState() {
     super.initState();
     _loadAchievements();
+    
+    // Subscribe to achievement updates
+    _achievementUpdateSubscription = AchievementUpdateController.stream.listen((_) {
+      // Reload achievements when notified of updates
+      _loadAchievements();
+    });
   }
 
   Future<void> _loadAchievements() async {
@@ -46,6 +79,7 @@ class _AchievementsTabState extends State<AchievementsTab> with SingleTickerProv
   @override
   void dispose() {
     _tabController.dispose();
+    _achievementUpdateSubscription.cancel();
     super.dispose();
   }
 
@@ -95,9 +129,6 @@ class _AchievementsTabState extends State<AchievementsTab> with SingleTickerProv
           indicatorWeight: 3.0, // Thicker indicator for better visibility
           labelStyle: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
           unselectedLabelStyle: const TextStyle(fontSize: 13),
-          padding: const EdgeInsets.symmetric(horizontal: 8),
-          labelPadding: const EdgeInsets.symmetric(horizontal: 12),
-          indicatorSize: TabBarIndicatorSize.label,
         ),
         elevation: 4, // Add shadow for better separation
       ),
@@ -187,7 +218,21 @@ class _AchievementsTabState extends State<AchievementsTab> with SingleTickerProv
   }
 
   Widget _buildClusterHeader(AchievementCluster cluster) {
-    final completionPercent = (cluster.completionPercentage * 100).round();
+    // Calculate overall progress based on all 4 categories
+    double completionPercentage;
+    String displayPercentage;
+    
+    if (cluster.id == 'overall_progress') {
+      // For the overall progress, use the new calculator
+      double rawPercentage = OverallProgressCalculator.calculateOverallProgressPercentage(_clusters).toDouble();
+      completionPercentage = rawPercentage / 100;
+      displayPercentage = rawPercentage.toStringAsFixed(1) + '%';
+    } else {
+      // For individual categories, cap at 100% but keep precision
+      completionPercentage = cluster.completionPercentage > 1.0 ? 1.0 : cluster.completionPercentage;
+      // Format with 1 decimal place for more precision
+      displayPercentage = (completionPercentage * 100).toStringAsFixed(1) + '%';
+    }
     final totalScore = cluster.totalScore;
     final maxScore = cluster.maxPossibleScore;
     
@@ -241,7 +286,7 @@ class _AchievementsTabState extends State<AchievementsTab> with SingleTickerProv
                     const Text('Overall Progress', style: TextStyle(color: Colors.white70, fontSize: 12)),
                     const SizedBox(height: 4),
                     Text(
-                      '$completionPercent%',
+                      displayPercentage,
                       style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.white),
                     ),
                   ],
@@ -265,7 +310,8 @@ class _AchievementsTabState extends State<AchievementsTab> with SingleTickerProv
             ClipRRect(
               borderRadius: BorderRadius.circular(10),
               child: LinearProgressIndicator(
-                value: cluster.completionPercentage,
+                // Cap the progress bar value at 1.0 (100%)
+                value: completionPercentage,
                 minHeight: 10,
                 backgroundColor: Colors.white.withOpacity(0.3),
                 valueColor: const AlwaysStoppedAnimation<Color>(Colors.white),
@@ -322,7 +368,8 @@ class _AchievementsTabState extends State<AchievementsTab> with SingleTickerProv
                 radius: 20,
                 backgroundColor: cluster.color.withOpacity(0.2),
                 child: Text(
-                  '${(subcategory.completionPercentage * 100).round()}%',
+                  // Ensure percentage never exceeds 100%
+                  '${(subcategory.completionPercentage > 1.0) ? 100 : (subcategory.completionPercentage * 100).round()}%',
                   style: TextStyle(
                     fontSize: 12,
                     fontWeight: FontWeight.bold,
@@ -441,9 +488,21 @@ class _AchievementsTabState extends State<AchievementsTab> with SingleTickerProv
     );
   }
 
+  void _showAchievementDetails(AchievementCluster cluster, AchievementSubcategory subcategory, Achievement achievement) {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (context) => _AchievementDetailsSheet(
+        cluster: cluster,
+        subcategory: subcategory,
+        achievement: achievement,
+      ),
+    );
+  }
+
   Widget _buildCertificateButton() {
-    // Calculate if certificate should be unlocked
-    // For now using a simple check - in real app would be more complex
+    // Count achievements for display purposes
     final totalCompletedAchievements = _clusters.fold(
         0,
         (sum, cluster) => sum + cluster.subcategories.fold(
@@ -455,62 +514,55 @@ class _AchievementsTabState extends State<AchievementsTab> with SingleTickerProv
             0,
             (subSum, subcat) => subSum + subcat.achievements.length));
 
-    final allCleared = totalCompletedAchievements > 0 && totalCompletedAchievements >= totalAchievements / 2;
+    // Calculate progress percentage for display
+    final achievementPercentage = totalAchievements > 0
+        ? ((totalCompletedAchievements / totalAchievements) * 100).toStringAsFixed(1)
+        : "0.0";
 
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
       child: ElevatedButton.icon(
-        icon: Icon(Icons.workspace_premium_rounded, size: 28, color: allCleared ? Colors.white : Colors.orange[300]),
-        label: Text(
-          allCleared ? 'Download Certificate' : 'Unlock Certificate',
-          style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+        icon: const Icon(Icons.workspace_premium_rounded, size: 28, color: Colors.white),
+        label: const Text(
+          'Download Certificate',
+          style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
         ),
         style: ElevatedButton.styleFrom(
           minimumSize: const Size(double.infinity, 56),
-          backgroundColor: allCleared ? Colors.orange[800] : Colors.grey[400],
+          backgroundColor: Colors.orange[800],
           foregroundColor: Colors.white,
           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
           elevation: 6,
         ),
-        onPressed: allCleared
-            ? () {
-                // Certificate download logic
-                ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(content: Text('Downloading your certificate...')),
-                );
-              }
-            : () {
-                showDialog(
-                  context: context,
-                  builder: (context) => AlertDialog(
-                    title: const Text('How to Unlock Certificate'),
-                    content: const Text(
-                      'To download your certificate, you need to complete at least 50% of all achievements. '
-                      'Keep going with quizzes and challenges to unlock your personalized certificate!',
-                    ),
-                    actions: [
-                      TextButton(
-                        onPressed: () => Navigator.pop(context),
-                        child: const Text('OK'),
-                      ),
-                    ],
-                  ),
-                );
-              },
-      ),
-    );
-  }
-
-  void _showAchievementDetails(AchievementCluster cluster, AchievementSubcategory subcategory, Achievement achievement) {
-    showModalBottomSheet(
-      context: context,
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
-      ),
-      builder: (context) => _AchievementDetailsSheet(
-        cluster: cluster,
-        subcategory: subcategory,
-        achievement: achievement,
+        onPressed: () async {
+          // Show loading indicator
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('Generating your certificate...')),
+          );
+          
+          try {
+            // Get user's name (if available, otherwise use a default)
+            final String userName = 'Valued Explorer'; // Replace with actual username if available
+            
+            // Generate certificate PDF
+            final pdfBytes = await CertificateService.generateCertificate(userName, _clusters);
+            
+            // Navigate to PDF preview screen
+            await Printing.layoutPdf(
+              onLayout: (_) async => pdfBytes,
+              name: 'KulturaQuest_Certificate',
+            );
+            
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(content: Text('Certificate ready!')),
+            );
+          } catch (e) {
+            // Handle errors
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(content: Text('Error generating certificate: $e')),
+            );
+          }
+        },
       ),
     );
   }
@@ -640,61 +692,103 @@ class _AchievementDetailsSheet extends StatelessWidget {
   void _navigateToChallenge(BuildContext context, AchievementCluster cluster, AchievementSubcategory subcategory, Achievement achievement) {
     // Determine which screen to navigate to based on the cluster, subcategory, and achievement IDs
     if (cluster.id == 'heroes') {
-      // Handle Hero challenges
-      if (achievement.id == 'rizal_quiz') {
-        Navigator.of(context).pushNamed('/hero_quiz', arguments: {
-          'heroName': 'Jose Rizal',
-          'quizTitle': 'Jose Rizal Quiz',
-        });
-      } else if (achievement.id == 'bonifacio_quiz') {
-        Navigator.of(context).pushNamed('/hero_quiz', arguments: {
-          'heroName': 'Andres Bonifacio',
-          'quizTitle': 'Andres Bonifacio Quiz',
-        });
-      } else if (achievement.id == 'mabini_quiz') {
-        Navigator.of(context).pushNamed('/hero_quiz', arguments: {
-          'heroName': 'Apolinario Mabini',
-          'quizTitle': 'Apolinario Mabini Quiz',
-        });
+      // Map achievementId to heroName and quizTitle
+      final heroMap = {
+        'rizal_quiz': {'name': 'Jose Rizal', 'quizTitle': 'Jose Rizal Quiz'},
+        'bonifacio_quiz': {'name': 'Andres Bonifacio', 'quizTitle': 'Andres Bonifacio Quiz'},
+        'luna_quiz': {'name': 'Antonio Luna', 'quizTitle': 'Antonio Luna Quiz'},
+        'mabini_quiz': {'name': 'Apolinario Mabini', 'quizTitle': 'Apolinario Mabini Quiz'},
+        'jacinto_quiz': {'name': 'Emilio Jacinto', 'quizTitle': 'Emilio Jacinto Quiz'},
+      };
+      
+      // Directly navigate to the hero quiz
+      if (heroMap.containsKey(achievement.id)) {
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (context) => HeroQuizScreen(
+              heroName: heroMap[achievement.id]!['name']!,
+              quizTitle: heroMap[achievement.id]!['quizTitle']!,
+            ),
+          ),
+        );
       } else {
         // Default to Heroes screen
         Navigator.of(context).pushNamed('/heroes');
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Quiz not available yet')),
+        );
       }
     } else if (cluster.id == 'presidents') {
-      // Handle President challenges
-      if (achievement.id == 'aguinaldo_quiz') {
-        Navigator.of(context).pushNamed('/president_detail', arguments: {
-          'name': 'Emilio Aguinaldo',
-          'imagePath': 'assets/images/aguinaldo.jpg',
-          'term': '1899-1901',
-        });
-      } else if (achievement.id == 'commonwealth_presidents') {
-        if (subcategory.id == 'early_republic') {
-          Navigator.of(context).pushNamed('/president_detail', arguments: {
-            'name': 'Manuel L. Quezon',
-            'imagePath': 'assets/images/quezon.jpg',
-            'term': '1935-1944',
-          });
-        }
-      } else if (achievement.id == 'martial_law_quiz') {
-        Navigator.of(context).pushNamed('/president_detail', arguments: {
-          'name': 'Ferdinand Marcos',
-          'imagePath': 'assets/images/marcos.jpg',
-          'term': '1965-1986',
-        });
-      } else if (achievement.id == 'democracy_restored') {
-        Navigator.of(context).pushNamed('/president_detail', arguments: {
-          'name': 'Corazon Aquino',
-          'imagePath': 'assets/images/cory.jpg',
-          'term': '1986-1992',
-        });
+      // Map achievementId to presidentName and quizTitle
+      final presidentMap = {
+        'aguinaldo_quiz': {'name': 'Emilio Aguinaldo', 'quizTitle': 'Emilio Aguinaldo Quiz'},
+        'quezon_quiz': {'name': 'Manuel L. Quezon', 'quizTitle': 'Manuel L. Quezon Quiz'},
+        'magsaysay_quiz': {'name': 'Ramon Magsaysay', 'quizTitle': 'Ramon Magsaysay Quiz'},
+        'marcos_quiz': {'name': 'Ferdinand Marcos', 'quizTitle': 'Ferdinand Marcos Quiz'},
+        'aquino_quiz': {'name': 'Corazon Aquino', 'quizTitle': 'Corazon Aquino Quiz'},
+        'modern_presidents_quiz': {'name': 'Modern Presidents', 'quizTitle': 'Modern Presidents Scholar'},
+      };
+      
+      // Directly navigate to the president's quiz
+      if (presidentMap.containsKey(achievement.id)) {
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (context) => PresidentQuizScreen(
+              presidentName: presidentMap[achievement.id]!['name']!,
+              quizTitle: presidentMap[achievement.id]!['quizTitle']!,
+            ),
+          ),
+        );
       } else {
         // Default to Presidents list
         Navigator.of(context).pushNamed('/presidents');
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Quiz not available yet')),
+        );
       }
     } else if (cluster.id == 'traditions') {
-      // Navigate to traditions page based on subcategory
-      if (subcategory.id == 'festivals') {
+      // Navigate to traditions page based on subcategory and achievement
+      if (subcategory.id == 'regional_traditions') {
+        if (achievement.id == 'luzon_traditions_quiz') {
+          Navigator.of(context).push(
+            MaterialPageRoute(
+              builder: (context) => TraditionsQuizScreen(
+                region: 'Luzon',
+                isRandom: false,
+              ),
+            ),
+          );
+        } else if (achievement.id == 'visayas_traditions_quiz') {
+          Navigator.of(context).push(
+            MaterialPageRoute(
+              builder: (context) => TraditionsQuizScreen(
+                region: 'Visayas',
+                isRandom: false,
+              ),
+            ),
+          );
+        } else if (achievement.id == 'mindanao_traditions_quiz') {
+          Navigator.of(context).push(
+            MaterialPageRoute(
+              builder: (context) => TraditionsQuizScreen(
+                region: 'Mindanao',
+                isRandom: false,
+              ),
+            ),
+          );
+        } else if (achievement.id == 'traditions_grand_master') {
+          Navigator.of(context).push(
+            MaterialPageRoute(
+              builder: (context) => TraditionsQuizScreen(
+                region: null,
+                isRandom: true,
+              ),
+            ),
+          );
+        }
+      } else if (subcategory.id == 'festivals') {
         Navigator.of(context).pushNamed('/festivals');
       } else if (subcategory.id == 'customs') {
         Navigator.of(context).pushNamed('/customs');
@@ -703,8 +797,52 @@ class _AchievementDetailsSheet extends StatelessWidget {
         Navigator.of(context).pushNamed('/traditions');
       }
     } else if (cluster.id == 'history') {
-      // Navigate to history page based on achievement
-      Navigator.of(context).pushNamed('/history');
+      // Navigate to history page based on subcategory and achievement
+      if (subcategory.id == 'regional_history') {
+        if (achievement.id == 'luzon_history_quiz') {
+          Navigator.of(context).push(
+            MaterialPageRoute(
+              builder: (context) => HistoryQuizScreen(
+                region: 'Luzon',
+                isRandom: false,
+              ),
+            ),
+          );
+        } else if (achievement.id == 'visayas_history_quiz') {
+          Navigator.of(context).push(
+            MaterialPageRoute(
+              builder: (context) => HistoryQuizScreen(
+                region: 'Visayas',
+                isRandom: false,
+              ),
+            ),
+          );
+        } else if (achievement.id == 'mindanao_history_quiz') {
+          Navigator.of(context).push(
+            MaterialPageRoute(
+              builder: (context) => HistoryQuizScreen(
+                region: 'Mindanao',
+                isRandom: false,
+              ),
+            ),
+          );
+        } else if (achievement.id == 'history_grand_scholar') {
+          Navigator.of(context).push(
+            MaterialPageRoute(
+              builder: (context) => HistoryQuizScreen(
+                region: null,
+                isRandom: true,
+              ),
+            ),
+          );
+        }
+      } else if (subcategory.id == 'historical_periods') {
+        // For now, navigate to general history page
+        Navigator.of(context).pushNamed('/history');
+      } else {
+        // Default history screen
+        Navigator.of(context).pushNamed('/history');
+      }
     } else {
       // If no specific navigation is defined, show a message
       ScaffoldMessenger.of(context).showSnackBar(

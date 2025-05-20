@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../services/achievements_service.dart';
+import '../screens/achievements_tab.dart';
 
 class PresidentQuizScreen extends StatefulWidget {
   final String presidentName;
@@ -18,9 +19,12 @@ class PresidentQuizScreen extends StatefulWidget {
 class _PresidentQuizScreenState extends State<PresidentQuizScreen> {
   int _currentQuestionIndex = 0;
   int _score = 0;
+  int _currentCorrectAnswers = 0;
+  double _currentPercentage = 0.0;
   bool _quizCompleted = false;
   List<Map<String, dynamic>> _questions = [];
   List<int> _userAnswers = [];
+  List<bool> _answerCorrectness = [];
   
   // Achievement related data
   final AchievementsService _achievementsService = AchievementsService();
@@ -45,16 +49,21 @@ class _PresidentQuizScreenState extends State<PresidentQuizScreen> {
       _achievementId = 'aguinaldo_quiz';
     } else if (widget.presidentName == 'Manuel L. Quezon') {
       _achievementSubcategoryId = 'early_republic';
-      _achievementId = 'commonwealth_presidents';
+      _achievementId = 'quezon_quiz';
+
     } else if (widget.presidentName == 'Ramon Magsaysay') {
-      _achievementSubcategoryId = 'early_republic';
-      _achievementId = 'commonwealth_presidents';
+      _achievementSubcategoryId = 'modern_era';
+      _achievementId = 'magsaysay_quiz';
     } else if (widget.presidentName == 'Ferdinand Marcos') {
-      _achievementSubcategoryId = 'modern_presidents';
-      _achievementId = 'martial_law_quiz';
+      _achievementSubcategoryId = 'modern_era';
+      _achievementId = 'marcos_quiz';
     } else if (widget.presidentName == 'Corazon Aquino') {
-      _achievementSubcategoryId = 'modern_presidents';
-      _achievementId = 'democracy_restored';
+      _achievementSubcategoryId = 'modern_era';
+      _achievementId = 'aquino_quiz';
+    } else {
+      // Default to modern presidents quiz for any other president
+      _achievementSubcategoryId = 'modern_era';
+      _achievementId = 'modern_presidents_quiz';
     }
   }
   
@@ -90,13 +99,23 @@ class _PresidentQuizScreenState extends State<PresidentQuizScreen> {
     try {
       // Only update if the new score is higher than the previous high score
       if (newScore > _previousHighScore) {
+        // Calculate achievement score on a 5-point scale for president quizzes
+        final achievementScore = (_questions.isEmpty) ? 0 : 
+            (newScore / 100 * 5).round(); // Convert percentage score to 5-point scale
+        
+        // Update the achievement with the new score
         await _achievementsService.updateAchievement(
           _achievementClusterId,
           _achievementSubcategoryId,
           _achievementId,
-          score: newScore,
+          score: achievementScore, // Use the 5-point scale
           completed: newScore >= 80, // Consider completed if score is 80% or higher
         );
+        
+        // Notify the achievements tab to refresh
+        AchievementUpdateController.notifyAchievementsUpdated();
+        
+        print('Successfully updated achievement: $_achievementId with score: $achievementScore, completed: ${newScore >= 80}');
         
         setState(() {
           _isNewHighScore = true;
@@ -259,6 +278,7 @@ class _PresidentQuizScreenState extends State<PresidentQuizScreen> {
           'correctIndex': 3,
         },
       ];
+
     } else if (widget.presidentName == 'Corazon Aquino') {
       _questions = [
         {
@@ -365,6 +385,60 @@ class _PresidentQuizScreenState extends State<PresidentQuizScreen> {
           'correctIndex': 3,
         },
       ];
+
+    } else if (widget.presidentName == 'Modern Presidents' || widget.presidentName == 'modern_presidents') {
+      _questions = [
+        {
+          'question': 'Who was the first president of the Fifth Republic?',
+          'options': [
+            'Ferdinand Marcos',
+            'Corazon Aquino',
+            'Fidel V. Ramos',
+            'Joseph Estrada'
+          ],
+          'correctIndex': 1,
+        },
+        {
+          'question': 'Which president launched the Philippines 2000 program?',
+          'options': [
+            'Fidel V. Ramos',
+            'Joseph Estrada',
+            'Gloria Macapagal-Arroyo',
+            'Benigno Aquino III'
+          ],
+          'correctIndex': 0,
+        },
+        {
+          'question': 'Who was the first female president of the Philippines?',
+          'options': [
+            'Gloria Macapagal-Arroyo',
+            'Corazon Aquino',
+            'Imelda Marcos',
+            'Leni Robredo'
+          ],
+          'correctIndex': 1,
+        },
+        {
+          'question': 'Which president was ousted by the second EDSA Revolution?',
+          'options': [
+            'Ferdinand Marcos',
+            'Joseph Estrada',
+            'Gloria Macapagal-Arroyo',
+            'Benigno Aquino III'
+          ],
+          'correctIndex': 1,
+        },
+        {
+          'question': 'Who is known for the slogan "Kung walang corrupt, walang mahirap"?',
+          'options': [
+            'Benigno Aquino III',
+            'Rodrigo Duterte',
+            'Gloria Macapagal-Arroyo',
+            'Fidel V. Ramos'
+          ],
+          'correctIndex': 0,
+        },
+      ];
     } else {
       // Default questions if president name doesn't match
       _questions = [
@@ -391,44 +465,109 @@ class _PresidentQuizScreenState extends State<PresidentQuizScreen> {
       ];
     }
 
-    // Initialize user answers array with -1 (no answer selected)
+    // Initialize user answers and answer correctness tracking
     _userAnswers = List.filled(_questions.length, -1);
+    _answerCorrectness = List.filled(_questions.length, false);
   }
 
   void _selectAnswer(int optionIndex) {
+    if (_quizCompleted) return;
+
     setState(() {
       _userAnswers[_currentQuestionIndex] = optionIndex;
+      
+      // Check if answer is correct and store result (but don't show feedback yet)
+      bool isCorrect = optionIndex == _questions[_currentQuestionIndex]['correctIndex'];
+      _answerCorrectness[_currentQuestionIndex] = isCorrect;
+      
+      // Still track correct answers internally for scoring
+      _currentCorrectAnswers = _answerCorrectness.where((correct) => correct).length;
+      
+      // Calculate current percentage (based on questions answered so far)
+      _currentPercentage = (_currentCorrectAnswers / _questions.length) * 100;
+      
+      // No feedback notification - the highlighted selection is enough
     });
   }
 
   void _nextQuestion() {
+    if (_userAnswers[_currentQuestionIndex] == -1) {
+      // User hasn't selected an answer
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Please select an answer before proceeding')),
+      );
+      return;
+    }
+
     if (_currentQuestionIndex < _questions.length - 1) {
       setState(() {
         _currentQuestionIndex++;
       });
     } else {
       _calculateScore();
+      setState(() {
+        _quizCompleted = true;
+      });
     }
+    
+    // Update the running score in real-time
+    _updateRunningScore();
   }
-
-  void _calculateScore() async {
-    int correctAnswers = 0;
-    for (int i = 0; i < _questions.length; i++) {
+  
+  void _updateRunningScore() {
+    // Calculate current score based on questions answered so far
+    int answeredCount = _userAnswers.where((answer) => answer != -1).length;
+    int correctCount = 0;
+    
+    for (int i = 0; i < answeredCount; i++) {
       if (_userAnswers[i] == _questions[i]['correctIndex']) {
-        correctAnswers++;
+        correctCount++;
       }
     }
     
-    final int totalQuestions = _questions.length;
-    final int newScore = (correctAnswers * 100) ~/ totalQuestions; // Calculate percentage score
-    
     setState(() {
-      _score = correctAnswers;
-      _quizCompleted = true;
+      _currentCorrectAnswers = correctCount;
+      _currentPercentage = (correctCount / _questions.length) * 100;
     });
+  }
+
+  void _calculateScore() {
+    // Calculate the score based on number of correct answers
+    int correctAnswers = 0;
+  
+    for (int i = 0; i < _questions.length; i++) {
+      if (_answerCorrectness[i]) {
+        correctAnswers++;
+      }
+    }
+  
+    // Calculate the percentage for achievement purposes
+    final percentage = (correctAnswers / _questions.length) * 100;
+    final percentageScore = percentage.round();
+  
+    setState(() {
+      // Store the actual number of correct answers as the score, not the percentage
+      _score = correctAnswers;
+      _isNewHighScore = percentageScore > _previousHighScore;
     
-    // Save achievement progress
-    await _saveAchievementProgress(newScore);
+      // Save the achievement progress if this is a new high score
+      // Still use percentage for achievement tracking for consistency
+      if (_isNewHighScore) {
+        _saveAchievementProgress(percentageScore);
+      }
+    
+      // Show results summary when quiz is completed
+      ScaffoldMessenger.of(context).hideCurrentSnackBar();
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            'Quiz completed! You got ${_score} out of ${_questions.length} questions correct',
+          ),
+          backgroundColor: percentage >= 80 ? Colors.green.shade700 : Colors.orange.shade700,
+          duration: const Duration(seconds: 3),
+        ),
+      );
+    });
   }
 
   void _restartQuiz() {
@@ -437,17 +576,25 @@ class _PresidentQuizScreenState extends State<PresidentQuizScreen> {
       _score = 0;
       _quizCompleted = false;
       _userAnswers = List.filled(_questions.length, -1);
+      _answerCorrectness = List.filled(_questions.length, false);
       _isNewHighScore = false;
     });
   }
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: Text(widget.quizTitle),
+    return WillPopScope(
+      // Ensure we just pop one level when back button is pressed
+      onWillPop: () async {
+        Navigator.pop(context);
+        return false;
+      },
+      child: Scaffold(
+        appBar: AppBar(
+          title: Text(widget.quizTitle),
+        ),
+        body: _quizCompleted ? _buildResultScreen() : _buildQuizScreen(),
       ),
-      body: _quizCompleted ? _buildResultScreen() : _buildQuizScreen(),
     );
   }
 
@@ -460,31 +607,29 @@ class _PresidentQuizScreenState extends State<PresidentQuizScreen> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          // Progress indicator
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 8.0),
-            child: Row(
-              children: [
-                Text(
-                  'Question ${_currentQuestionIndex + 1}/${_questions.length}',
-                  style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w500),
+          // Question counter only (no score)
+          Row(
+            mainAxisAlignment: MainAxisAlignment.end,
+            children: [
+              // Question counter
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                decoration: BoxDecoration(
+                  color: Colors.orange.shade100,
+                  borderRadius: BorderRadius.circular(20),
                 ),
-                const SizedBox(width: 8),
-                Expanded(
-                  child: ClipRRect(
-                    borderRadius: BorderRadius.circular(10),
-                    child: LinearProgressIndicator(
-                      value: (_currentQuestionIndex + 1) / _questions.length,
-                      minHeight: 10,
-                      backgroundColor: Colors.orange.shade100,
-                      valueColor: AlwaysStoppedAnimation<Color>(Colors.orange.shade700),
-                    ),
+                child: Text(
+                  'Question ${_currentQuestionIndex + 1}/${_questions.length}',
+                  style: TextStyle(
+                    fontSize: 14,
+                    fontWeight: FontWeight.w500,
+                    color: Colors.orange.shade900,
                   ),
                 ),
-              ],
-            ),
+              ),
+            ],
           ),
-          const SizedBox(height: 24),
+          const SizedBox(height: 16),
           
           // Question text
           Card(
@@ -583,7 +728,7 @@ class _PresidentQuizScreenState extends State<PresidentQuizScreen> {
                 ),
               ),
               
-              // Checkmark if selected
+              // Only show selection indicator, no correct/incorrect feedback
               if (isSelected)
                 const Icon(Icons.check_circle, color: Colors.orange, size: 24),
             ],
@@ -594,6 +739,7 @@ class _PresidentQuizScreenState extends State<PresidentQuizScreen> {
   }
 
   Widget _buildResultScreen() {
+    // Calculate percentage based on correct answers for determining message and colors
     final double percentage = (_score / _questions.length) * 100;
     final bool isPerfectScore = _score == _questions.length;
     
@@ -624,7 +770,7 @@ class _PresidentQuizScreenState extends State<PresidentQuizScreen> {
             ),
             const SizedBox(height: 16),
             Text(
-              'You scored $_score out of ${_questions.length}',
+              'You scored $_score out of ${_questions.length} questions',
               style: const TextStyle(fontSize: 20),
             ),
             if (_isNewHighScore)
@@ -648,18 +794,20 @@ class _PresidentQuizScreenState extends State<PresidentQuizScreen> {
                   ],
                 ),
               ),
-            Text(
-              '${percentage.toStringAsFixed(0)}%',
-              style: TextStyle(
-                fontSize: 48,
-                fontWeight: FontWeight.bold,
-                color: isPerfectScore
-                    ? Colors.amber.shade700
-                    : percentage >= 70
-                        ? Colors.green
-                        : percentage >= 50
-                            ? Colors.orange
-                            : Colors.red,
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 8),
+              decoration: BoxDecoration(
+                color: Colors.green.shade50,
+                borderRadius: BorderRadius.circular(20),
+                border: Border.all(color: Colors.green.shade300),
+              ),
+              child: const Text(
+                'Completed',
+                style: TextStyle(
+                  fontSize: 24,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.green,
+                ),
               ),
             ),
             const SizedBox(height: 32),
@@ -685,7 +833,10 @@ class _PresidentQuizScreenState extends State<PresidentQuizScreen> {
             
             // Back to president profile button
             OutlinedButton.icon(
-              onPressed: () => Navigator.pop(context),
+              onPressed: () {
+                // Simply pop back to the president detail screen
+                Navigator.pop(context);
+              },
               icon: const Icon(Icons.arrow_back),
               label: const Text('Back to President Profile'),
               style: OutlinedButton.styleFrom(
@@ -720,10 +871,10 @@ class _PresidentQuizScreenState extends State<PresidentQuizScreen> {
                 final userAnswer = _userAnswers[index];
                 final correctIndex = question['correctIndex'];
                 final isCorrect = userAnswer == correctIndex;
+                final options = question['options'] as List<String>;
 
-                return Padding(
-                  padding: const EdgeInsets.symmetric(vertical: 4),
-                  child: Row(
+                return ExpansionTile(
+                  title: Row(
                     children: [
                       Icon(
                         isCorrect ? Icons.check_circle : Icons.cancel,
@@ -741,6 +892,21 @@ class _PresidentQuizScreenState extends State<PresidentQuizScreen> {
                       ),
                     ],
                   ),
+                  children: [
+                    Padding(
+                      padding: const EdgeInsets.only(left: 16, right: 16, bottom: 16),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text('Your answer: ${options[userAnswer]}', 
+                            style: TextStyle(color: isCorrect ? Colors.green : Colors.red)),
+                          if (!isCorrect)
+                            Text('Correct answer: ${options[correctIndex]}', 
+                              style: TextStyle(color: Colors.green, fontWeight: FontWeight.bold)),
+                        ],
+                      ),
+                    ),
+                  ],
                 );
               },
             ),

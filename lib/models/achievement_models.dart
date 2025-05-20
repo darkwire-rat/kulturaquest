@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../utils/quiz_score_calculator.dart';
 
 /// Achievement models to handle the clustered achievement system
 
@@ -60,11 +61,18 @@ class AchievementSubcategory {
     this.iconPath = 'assets/images/subcategory_default.png',
   });
 
-  // Calculate completion percentage
+  // Calculate completion percentage (capped at 1.0 or 100%)
   double get completionPercentage {
     if (achievements.isEmpty) return 0.0;
-    final completed = achievements.where((a) => a.isCompleted).length;
-    return completed / achievements.length;
+    
+    // Calculate based on user scores relative to max scores instead of just completed count
+    final totalUserScore = totalScore;
+    final maxPossible = maxPossibleScore;
+    
+    if (maxPossible <= 0) return 0.0;
+    if (totalUserScore >= maxPossible) return 1.0; // Cap at 100%
+    
+    return totalUserScore / maxPossible; // Will be between 0.0 and 1.0
   }
 
   // Calculate total score
@@ -96,20 +104,19 @@ class AchievementCluster {
     this.iconPath = 'assets/images/cluster_default.png',
   });
 
-  // Calculate overall completion percentage
+  // Calculate overall completion percentage (capped at 1.0 or 100%)
   double get completionPercentage {
-    if (subcategories.isEmpty) return 0.0;
-    final totalAchievements = subcategories.fold(
-        0, (sum, subcat) => sum + subcat.achievements.length);
-    if (totalAchievements == 0) return 0.0;
-
-    final completedAchievements = subcategories.fold(
-        0,
-        (sum, subcat) =>
-            sum +
-            subcat.achievements.where((a) => a.isCompleted).length);
-
-    return completedAchievements / totalAchievements;
+    // First check direct score comparison to enforce hard cap
+    final userScore = totalScore;
+    final maxScore = maxPossibleScore;
+    
+    if (maxScore <= 0) return 0.0;
+    if (userScore >= maxScore) return 1.0; // Always cap at 100%
+    
+    // Use the category-specific percentage calculation
+    final percentage = QuizScoreCalculator.calculateCategoryPercentage(id, totalScore);
+    final calculatedPercentage = percentage / 100.0;
+    return calculatedPercentage > 1.0 ? 1.0 : calculatedPercentage; // Convert to a value between 0 and 1, and ensure it never exceeds 1.0
   }
 
   // Calculate total score across all subcategories

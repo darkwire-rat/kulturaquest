@@ -14,6 +14,13 @@ import 'screens/hero_quiz_screen.dart';
 import 'screens/president_detail_screen.dart';
 import 'screens/president_quiz_screen.dart';
 import 'screens/stories_screen.dart';
+import 'screens/traditions_quiz_screen.dart';
+import 'screens/history_quiz_screen.dart';
+import 'screens/luzon_screen.dart';
+import 'screens/visayas_screen.dart';
+import 'screens/mindanao_screen.dart';
+import 'screens/category_detail_screen.dart';
+import 'screens/achievements_screen.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -31,8 +38,33 @@ class MainApp extends StatelessWidget {
       theme: ThemeData(primarySwatch: Colors.orange),
       initialRoute: '/',
       routes: {
-        '/': (context) => const LanguageSelectionScreen(),
-        '/main': (context) => const MainScreen(),
+        '/': (context) {
+          final args = ModalRoute.of(context)?.settings.arguments as Map<String, dynamic>?;
+          if (args != null && args.containsKey('initialTab')) {
+            return MainScreen(initialTab: args['initialTab']);
+          }
+          return const LanguageSelectionScreen();
+        },
+        '/luzon': (context) => const LuzonScreen(),
+        '/visayas': (context) => const VisayasScreen(),
+        '/mindanao': (context) => const MindanaoScreen(),
+        '/achievements': (context) => const AchievementsScreen(),
+        '/category': (context) {
+          final args = ModalRoute.of(context)!.settings.arguments as Map<String, dynamic>;
+          return CategoryDetailScreen(category: args['category']);
+        },
+        '/traditions': (context) {
+          final args = ModalRoute.of(context)?.settings.arguments as Map<String, dynamic>?;
+          return TraditionsQuizScreen(region: args?['region']);
+        },
+        '/history': (context) {
+          final args = ModalRoute.of(context)?.settings.arguments as Map<String, dynamic>?;
+          return HistoryQuizScreen(region: args?['region']);
+        },
+        '/main': (context) {
+          final args = ModalRoute.of(context)?.settings.arguments as Map<String, dynamic>?;
+          return MainScreen(initialTab: args?['initialTab']);
+        },
         '/signin': (context) => const SignInScreen(),
         '/signup': (context) => const SignUpScreen(),
         '/heroes': (context) => const HeroesScreen(),
@@ -53,6 +85,13 @@ class MainApp extends StatelessWidget {
           );
         },
         '/stories': (context) => const StoriesScreen(),
+        '/president_quiz': (context) {
+          final args = ModalRoute.of(context)!.settings.arguments as Map<String, dynamic>;
+          return PresidentQuizScreen(
+            presidentName: args['presidentName'],
+            quizTitle: args['quizTitle'],
+          );
+        },
       },
     );
   }
