@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import '../services/achievements_service.dart';
-import 'achievements_tab.dart'; // Import for AchievementUpdateController
 
 class HeroQuizScreen extends StatefulWidget {
   final String heroName;
@@ -116,13 +115,8 @@ class _HeroQuizScreenState extends State<HeroQuizScreen> {
           completed: newScore >= 80, // Consider completed if score is 80% or higher
         );
         
-        // Notify the achievements tab that achievements have been updated
-        // This will trigger a refresh of the overall progress
-        AchievementUpdateController.notifyAchievementsUpdated();
-        
         setState(() {
           _isNewHighScore = true;
-          _previousHighScore = newScore;
         });
       }
     } catch (e) {
@@ -180,59 +174,6 @@ class _HeroQuizScreenState extends State<HeroQuizScreen> {
           'correctIndex': 1,
         },
       ];
-    } else if (widget.heroName == 'Andres Bonifacio') {
-      _questions = [
-        {
-          'question': 'When was Andres Bonifacio born?',
-          'options': [
-            'November 30, 1863',
-            'November 30, 1864',
-            'May 10, 1897',
-            'December 15, 1875'
-          ],
-          'correctIndex': 0,
-        },
-        {
-          'question': 'What secret society did Andres Bonifacio found?',
-          'options': [
-            'La Liga Filipina',
-            'Kataastaasan, Kagalanggalangang Katipunan ng mga Anak ng Bayan (KKK)',
-            'Propaganda Movement',
-            'La Solidaridad'
-          ],
-          'correctIndex': 1,
-        },
-        {
-          'question': 'What was Andres Bonifacio\'s occupation before becoming a revolutionary?',
-          'options': [
-            'Lawyer',
-            'Doctor',
-            'Warehouse clerk',
-            'Teacher'
-          ],
-          'correctIndex': 2,
-        },
-        {
-          'question': 'Who ordered the execution of Andres Bonifacio?',
-          'options': [
-            'Emilio Aguinaldo',
-            'Jose Rizal',
-            'Antonio Luna',
-            'Miguel Malvar'
-          ],
-          'correctIndex': 0,
-        },
-        {
-          'question': 'What document did Andres Bonifacio write that served as a guide for Katipunan members?',
-          'options': [
-            'Noli Me Tangere',
-            'El Filibusterismo',
-            'Kartilya ng Katipunan',
-            'Mi Último Adiós'
-          ],
-          'correctIndex': 2,
-        },
-      ];
     } else {
       // Default questions if hero is not recognized
       _questions = [
@@ -272,10 +213,31 @@ class _HeroQuizScreenState extends State<HeroQuizScreen> {
       if (widget.heroName == 'Jose Rizal') {
         _answerSelected = true;
         _showCorrectAnswer = true;
-        // No feedback toast during quiz - will show summary at the end
+        
+        // Show feedback toast
+        ScaffoldMessenger.of(context).hideCurrentSnackBar();
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(
+              isCorrect ? 'Correct! 🎉' : 'Incorrect. The correct answer is option ${String.fromCharCode(65 + (_questions[_currentQuestionIndex]['correctIndex'] as int))}',
+            ),
+            backgroundColor: isCorrect ? Colors.green.shade700 : Colors.red.shade700,
+            duration: const Duration(seconds: 2),
+          ),
+        );
       } else {
-        // For other quizzes, proceed as normal without showing feedback
-        // No feedback toast during quiz - will show summary at the end
+        // For other quizzes, proceed as normal
+        // Show feedback toast
+        ScaffoldMessenger.of(context).hideCurrentSnackBar();
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(
+              isCorrect ? 'Correct! 🎉' : 'Incorrect. The correct answer was option ${String.fromCharCode(65 + (_questions[_currentQuestionIndex]['correctIndex'] as int))}',
+            ),
+            backgroundColor: isCorrect ? Colors.green.shade700 : Colors.red.shade700,
+            duration: const Duration(seconds: 1),
+          ),
+        );
       }
     });
   }
@@ -377,20 +339,6 @@ class _HeroQuizScreenState extends State<HeroQuizScreen> {
             Text(
               'You scored $_score out of ${_questions.length}',
               style: const TextStyle(fontSize: 20),
-            ),
-            Text(
-              '${percentage.toStringAsFixed(0)}%',
-              style: TextStyle(
-                fontSize: 36,
-                fontWeight: FontWeight.bold,
-                color: isPerfectScore
-                    ? Colors.amber.shade700
-                    : percentage >= 70
-                        ? Colors.green.shade700
-                        : percentage >= 50
-                            ? Colors.orange.shade700
-                            : Colors.red.shade700,
-              ),
             ),
             if (_isNewHighScore)
               Container(
@@ -589,4 +537,3 @@ class _HeroQuizScreenState extends State<HeroQuizScreen> {
             ),
     );
   }
-}

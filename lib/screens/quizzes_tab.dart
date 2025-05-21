@@ -39,35 +39,108 @@ class QuizzesTab extends StatelessWidget {
         ),
       );
     } else if (category == 'Traditions') {
-      // Show dialog to choose region or random
-      showDialog(
-        context: context,
-        builder: (context) {
-          return SimpleDialog(
-            title: const Text('Choose a Region'),
-            children: [
-              SimpleDialogOption(
-                onPressed: () => Navigator.pop(context, 'Luzon'),
-                child: const Text('Luzon Traditions'),
+      _showRegionDialog(context, 'Traditions');
+    } else if (category == 'History') {
+      _showRegionDialog(context, 'History');
+    } else {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('$category Quiz Coming Soon!'),
+          behavior: SnackBarBehavior.floating,
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+          backgroundColor: const Color(0xFF8B4513),
+        ),
+      );
+    }
+  }
+
+  void _showRegionDialog(BuildContext context, String category) {
+    showDialog(
+      context: context,
+      builder: (context) {
+        return Dialog(
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(16),
+          ),
+          elevation: 8,
+          backgroundColor: const Color(0xFFF0E6D2), // Parchment color
+          child: Padding(
+            padding: const EdgeInsets.all(20.0),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Text(
+                  'Choose a Region',
+                  style: TextStyle(
+                    fontSize: 22,
+                    fontWeight: FontWeight.bold,
+                    color: const Color(0xFF5F4B32),
+                    fontFamily: 'Serif',
+                  ),
+                ),
+                const SizedBox(height: 8),
+                // Decorative divider
+                Container(
+                  height: 2,
+                  width: 60,
+                  color: const Color(0xFFD2B48C), // Tan color
+                ),
+                const SizedBox(height: 20),
+                // Luzon option with blue accent
+                _buildRegionOption(
+                  context,
+                  'Luzon',
+                  category,
+                  Colors.blue[700]!,
+                  Icons.location_on,
+                ),
+                const SizedBox(height: 12),
+                // Visayas option with yellow/amber accent
+                _buildRegionOption(
+                  context,
+                  'Visayas',
+                  category,
+                  Colors.amber[700]!,
+                  Icons.location_on,
+                ),
+                const SizedBox(height: 12),
+                // Mindanao option with red accent
+                _buildRegionOption(
+                  context,
+                  'Mindanao',
+                  category,
+                  Colors.red[700]!,
+                  Icons.location_on,
+                ),
+                const SizedBox(height: 16),
+                const Divider(color: Color(0xFFD2B48C)),
+                const SizedBox(height: 16),
+                // Random option
+                _buildRegionOption(
+                  context,
+                  'Random',
+                  category,
+                  const Color(0xFF8B4513), // Saddle brown
+                  Icons.shuffle,
+                ),
+              ],
+            ),
+          ),
+        );
+      },
+    ).then((selected) {
+      if (selected != null) {
+        if (category == 'History') {
+          Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (context) => HistoryQuizScreen(
+                region: selected == 'Random' ? null : selected,
+                isRandom: selected == 'Random',
               ),
-              SimpleDialogOption(
-                onPressed: () => Navigator.pop(context, 'Visayas'),
-                child: const Text('Visayas Traditions'),
-              ),
-              SimpleDialogOption(
-                onPressed: () => Navigator.pop(context, 'Mindanao'),
-                child: const Text('Mindanao Traditions'),
-              ),
-              const Divider(),
-              SimpleDialogOption(
-                onPressed: () => Navigator.pop(context, 'Random'),
-                child: const Text('Random Traditions Quiz'),
-              ),
-            ],
+            ),
           );
-        },
-      ).then((selected) {
-        if (selected != null) {
+        } else if (category == 'Traditions') {
           Navigator.push(
             context,
             MaterialPageRoute(
@@ -78,64 +151,50 @@ class QuizzesTab extends StatelessWidget {
             ),
           );
         }
-      });
-    } else if (category == 'History') {
-      // Show dialog to choose region or random
-      showDialog(
-        context: context,
-        builder: (context) {
-          return SimpleDialog(
-            title: const Text('Choose a Region'),
-            children: [
-              SimpleDialogOption(
-                onPressed: () => Navigator.pop(context, 'Luzon'),
-                child: const Text('Luzon History'),
-              ),
-              SimpleDialogOption(
-                onPressed: () => Navigator.pop(context, 'Visayas'),
-                child: const Text('Visayas History'),
-              ),
-              SimpleDialogOption(
-                onPressed: () => Navigator.pop(context, 'Mindanao'),
-                child: const Text('Mindanao History'),
-              ),
-              const Divider(),
-              SimpleDialogOption(
-                onPressed: () => Navigator.pop(context, 'Random'),
-                child: const Text('Random History Quiz'),
-              ),
-            ],
-          );
-        },
-      ).then((selected) {
-        if (selected != null) {
-          Navigator.push(
-            context,
-            MaterialPageRoute(
-              builder: (context) => HistoryQuizScreen(
-                region: selected == 'Random' ? null : selected,
-                isRandom: selected == 'Random',
+      }
+    });
+  }
+
+  Widget _buildRegionOption(BuildContext context, String region, String category, Color accentColor, IconData icon) {
+    final String label = region == 'Random' ? 'Random $category Quiz' : '$region $category';
+
+    return InkWell(
+      onTap: () => Navigator.pop(context, region),
+      borderRadius: BorderRadius.circular(12),
+      child: Container(
+        padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 16),
+        decoration: BoxDecoration(
+          color: accentColor.withOpacity(0.1),
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(color: accentColor, width: 1),
+        ),
+        child: Row(
+          children: [
+            Icon(icon, color: accentColor, size: 20),
+            const SizedBox(width: 12),
+            Expanded(
+              child: Text(
+                label,
+                style: TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.w500,
+                  color: const Color(0xFF5F4B32),
+                  fontFamily: 'Serif',
+                ),
               ),
             ),
-          );
-        }
-      });
-    } else {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('$category Quiz Coming Soon!'),
-          behavior: SnackBarBehavior.floating,
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+            Icon(Icons.arrow_forward_ios, color: accentColor, size: 16),
+          ],
         ),
-      );
-    }
+      ),
+    );
   }
 
   @override
   Widget build(BuildContext context) {
     final categories = [
       {
-        'name': 'History', 
+        'name': 'History',
         'image': 'assets/images/history.jpg',
         'gradient': [Colors.indigo, Colors.purple],
         'icon': Icons.history_rounded,
@@ -180,8 +239,9 @@ class QuizzesTab extends StatelessWidget {
                   'Quiz Categories',
                   style: TextStyle(
                     fontSize: 24,
-                    fontWeight: FontWeight.bold,
+                    fontWeight: FontWeight.w500,
                     letterSpacing: 1.2,
+                    color: Colors.white,
                   ),
                 ),
                 centerTitle: true,
@@ -217,11 +277,11 @@ class QuizzesTab extends StatelessWidget {
               ),
             ),
             SliverPadding(
-              padding: const EdgeInsets.all(16.0),
+              padding: const EdgeInsets.fromLTRB(16.0, 16.0, 16.0, 30.0), // Added extra bottom padding
               sliver: SliverGrid(
                 gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
                   crossAxisCount: 2,
-                  childAspectRatio: 0.9,
+                  childAspectRatio: 0.8, // Adjusted for more height
                   crossAxisSpacing: 16,
                   mainAxisSpacing: 16,
                 ),
@@ -246,6 +306,17 @@ class QuizzesTab extends StatelessWidget {
       child: AnimatedContainer(
         duration: const Duration(milliseconds: 300),
         curve: Curves.easeInOut,
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(20),
+          boxShadow: [
+            BoxShadow(
+              color: (category['gradient'][0] as Color).withOpacity(0.6),
+              blurRadius: 15,
+              spreadRadius: 2,
+              offset: const Offset(0, 8),
+            ),
+          ],
+        ),
         child: Stack(
           children: [
             // Background with gradient and image
@@ -301,45 +372,77 @@ class QuizzesTab extends StatelessWidget {
                     ),
                     // Content
                     Padding(
-                      padding: const EdgeInsets.all(16.0),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        mainAxisAlignment: MainAxisAlignment.end,
-                        children: [
-                          // Icon
-                          Container(
-                            padding: const EdgeInsets.all(12),
-                            decoration: BoxDecoration(
-                              color: Colors.white.withOpacity(0.2),
-                              shape: BoxShape.circle,
+                      padding: const EdgeInsets.all(12.0),
+                      child: SingleChildScrollView(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          mainAxisAlignment: MainAxisAlignment.end,
+                          mainAxisSize: MainAxisSize.min, // Minimize vertical space
+                          children: [
+                            // Icon with glowing effect
+                            Container(
+                              padding: const EdgeInsets.all(8),
+                              decoration: BoxDecoration(
+                                color: Colors.white.withOpacity(0.2),
+                                shape: BoxShape.circle,
+                                boxShadow: [
+                                  BoxShadow(
+                                    color: Colors.white.withOpacity(0.3),
+                                    blurRadius: 8,
+                                    spreadRadius: 1,
+                                  ),
+                                ],
+                              ),
+                              child: Icon(
+                                category['icon'],
+                                color: Colors.white,
+                                size: 24,
+                              ),
                             ),
-                            child: Icon(
-                              category['icon'],
-                              color: Colors.white,
-                              size: 24,
+                            const SizedBox(height: 8),
+                            // Title with highlight
+                            Container(
+                              padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                              decoration: BoxDecoration(
+                                color: (category['gradient'][0] as Color).withOpacity(0.7),
+                                borderRadius: BorderRadius.circular(6),
+                                boxShadow: [
+                                  BoxShadow(
+                                    color: Colors.black.withOpacity(0.3),
+                                    blurRadius: 4,
+                                    offset: const Offset(0, 2),
+                                  ),
+                                ],
+                              ),
+                              child: Text(
+                                category['name'],
+                                style: const TextStyle(
+                                  color: Colors.white,
+                                  fontSize: 18,
+                                  fontWeight: FontWeight.bold,
+                                  letterSpacing: 0.5,
+                                ),
+                              ),
                             ),
-                          ),
-                          const SizedBox(height: 12),
-                          // Title
-                          Text(
-                            category['name'],
-                            style: const TextStyle(
-                              color: Colors.white,
-                              fontSize: 20,
-                              fontWeight: FontWeight.bold,
-                              letterSpacing: 0.5,
+                            const SizedBox(height: 4),
+                            // Subtitle with shine effect
+                            Container(
+                              padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 1),
+                              decoration: BoxDecoration(
+                                color: Colors.black.withOpacity(0.3),
+                                borderRadius: BorderRadius.circular(4),
+                              ),
+                              child: const Text(
+                                'Test your knowledge',
+                                style: TextStyle(
+                                  color: Colors.white,
+                                  fontSize: 12,
+                                  fontWeight: FontWeight.w500,
+                                ),
+                              ),
                             ),
-                          ),
-                          const SizedBox(height: 4),
-                          // Subtitle
-                          const Text(
-                            'Test your knowledge',
-                            style: TextStyle(
-                              color: Colors.white70,
-                              fontSize: 12,
-                            ),
-                          ),
-                        ],
+                          ],
+                        ),
                       ),
                     ),
                     // Particles effect
@@ -362,25 +465,23 @@ class QuizzesTab extends StatelessWidget {
                 ),
               ),
             ),
-            // Hover effect
+            // Hover effect with pulsing animation
             Positioned.fill(
-              child: Material(
-                color: Colors.transparent,
-                child: InkWell(
-                  borderRadius: BorderRadius.circular(20),
-                  onTap: () => _handleCategoryTap(context, category['name']),
-                  splashColor: Colors.white.withOpacity(0.2),
-                  highlightColor: Colors.transparent,
-                  child: Container(
+              child: TweenAnimationBuilder(
+                tween: Tween<double>(begin: 0.0, end: 1.0),
+                duration: const Duration(seconds: 2),
+                curve: Curves.easeInOut,
+                builder: (context, double value, child) {
+                  return Container(
                     decoration: BoxDecoration(
                       borderRadius: BorderRadius.circular(20),
                       border: Border.all(
-                        color: Colors.white.withOpacity(0.3),
-                        width: 0.5,
+                        color: Colors.white.withOpacity(0.3 + (0.2 * math.sin(value * math.pi * 2))),
+                        width: 1.0 + (0.5 * math.sin(value * math.pi * 2)),
                       ),
                     ),
-                  ),
-                ),
+                  );
+                },
               ),
             ),
           ],

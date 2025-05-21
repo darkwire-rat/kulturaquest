@@ -41,7 +41,7 @@ class MindanaoScreen extends StatelessWidget {
                       children: [
                         // Background image - using philpic.jpg as preferred by the user
                         Image.asset(
-                          'images/philpic.jpg',
+                          'assets/images/durian.jpg',
                           fit: BoxFit.cover,
                           errorBuilder: (context, error, stackTrace) {
                             return Container(
@@ -320,19 +320,19 @@ class MindanaoScreen extends StatelessWidget {
       {
         'name': 'Sultan Kudarat',
         'role': 'Maguindanao Sultan',
-        'image': 'images/philpic.jpg',
+        'image': 'assets/images/sultan.jpeg',
         'desc': 'Powerful 17th century sultan who successfully resisted Spanish colonization of central Mindanao.'
       },
       {
         'name': 'Apolonio de la Cruz',
         'role': 'Revolutionary Leader',
-        'image': 'images/philpic.jpg',
+        'image': 'assets/images/hermano.jpeg',
         'desc': 'Led the resistance against American colonization in Mindanao during the Philippine-American War.'
       },
       {
         'name': 'Salipada Pendatun',
         'role': 'Politician & War Hero',
-        'image': 'images/philpic.jpg',
+        'image': 'assets/images/salipada.jpeg',
         'desc': 'WWII guerrilla leader who later became one of the first Muslim senators of the Philippines.'
       },
     ];
@@ -346,7 +346,7 @@ class MindanaoScreen extends StatelessWidget {
         ),
         const SizedBox(height: 16),
         Container(
-          height: 220,
+          height: 280,
           child: ListView.builder(
             scrollDirection: Axis.horizontal,
             itemCount: personalities.length,
@@ -369,12 +369,12 @@ class MindanaoScreen extends StatelessWidget {
                           borderRadius: const BorderRadius.vertical(top: Radius.circular(12)),
                           child: Image.asset(
                             person['image'] as String,
-                            height: 140,
+                            height: 180,
                             width: double.infinity,
                             fit: BoxFit.cover,
                             errorBuilder: (context, error, stackTrace) {
                               return Container(
-                                height: 140,
+                                height: 120,
                                 color: Colors.red[100],
                                 child: const Icon(Icons.person, size: 60, color: Colors.red),
                               );
@@ -469,7 +469,7 @@ class MindanaoScreen extends StatelessWidget {
                   child: FlipCard(
                     direction: FlipDirection.HORIZONTAL,
                     front: _buildCardFront(
-                      imagePath: 'images/philpic.jpg',
+                      imagePath: 'assets/images/singkil.jpg',
                       title: 'Singkil',
                     ),
                     back: _buildCardBack(
@@ -488,7 +488,7 @@ class MindanaoScreen extends StatelessWidget {
                   child: FlipCard(
                     direction: FlipDirection.HORIZONTAL,
                     front: _buildCardFront(
-                      imagePath: 'images/philpic.jpg',
+                      imagePath: 'assets/images/pangalay.jpg',
                       title: 'Pangalay',
                     ),
                     back: _buildCardBack(
@@ -507,7 +507,7 @@ class MindanaoScreen extends StatelessWidget {
                   child: FlipCard(
                     direction: FlipDirection.HORIZONTAL,
                     front: _buildCardFront(
-                      imagePath: 'images/philpic.jpg',
+                      imagePath: 'assets/images/sagayan.jpeg',
                       title: 'Sagayan',
                     ),
                     back: _buildCardBack(
@@ -544,7 +544,7 @@ class MindanaoScreen extends StatelessWidget {
                   child: FlipCard(
                     direction: FlipDirection.HORIZONTAL,
                     front: _buildCardFront(
-                      imagePath: 'images/philpic.jpg',
+                      imagePath: 'assets/images/tnalak.jpg',
                       title: 'T\'nalak Weaving',
                     ),
                     back: _buildCardBack(
@@ -563,7 +563,7 @@ class MindanaoScreen extends StatelessWidget {
                   child: FlipCard(
                     direction: FlipDirection.HORIZONTAL,
                     front: _buildCardFront(
-                      imagePath: 'images/philpic.jpg',
+                      imagePath: 'assets/images/brasscasting.jpg',
                       title: 'Brass Casting',
                     ),
                     back: _buildCardBack(
@@ -582,7 +582,7 @@ class MindanaoScreen extends StatelessWidget {
                   child: FlipCard(
                     direction: FlipDirection.HORIZONTAL,
                     front: _buildCardFront(
-                      imagePath: 'images/philpic.jpg',
+                      imagePath: 'assets/images/yakan.png',
                       title: 'Yakan Weaving',
                     ),
                     back: _buildCardBack(
@@ -740,9 +740,9 @@ class MindanaoScreen extends StatelessWidget {
                         child: ListView(
                           scrollDirection: Axis.horizontal,
                           children: [
-                            _buildMindanaoImage('images/philpic.jpg'),
-                            _buildMindanaoImage('images/philpic.jpg'),
-                            _buildMindanaoImage('images/philpic.jpg'),
+                            _buildMindanaoImage('assets/images/apo1.jpeg'),
+                            _buildMindanaoImage('assets/images/apo2.jpeg'),
+                            _buildMindanaoImage('assets/images/apo3.jpeg'),
                           ],
                         ),
                       ),
@@ -866,7 +866,7 @@ class MindanaoScreen extends StatelessWidget {
                         child: ClipRRect(
                           borderRadius: BorderRadius.circular(8),
                           child: Image.asset(
-                            'images/philpic.jpg',
+                            'assets/images/eagle.jpg',
                             fit: BoxFit.cover,
                             errorBuilder: (context, error, stackTrace) {
                               return Container(
@@ -942,28 +942,28 @@ class MindanaoScreen extends StatelessWidget {
         'year': '1405',
         'description': 'The establishment of the Sultanate of Sulu by Arab missionary Sharif ul-Hashim, which became a powerful Islamic state and trading power in Southeast Asia.',
         'icon': Icons.account_balance,
-        'image': 'images/philpic.jpg',
+        'image': 'assets/images/suluflag.png',
       },
       {
         'title': 'Maguindanao Sultanate',
         'year': '1515',
         'description': 'The founding of the Maguindanao Sultanate by Sharif Muhammad Kabungsuwan, which became a major political and cultural center in Mindanao.',
         'icon': Icons.mosque,
-        'image': 'images/philpic.jpg',
+        'image': 'assets/images/maguindanao.png',
       },
       {
         'title': 'Zamboanga Siege',
         'year': '1635',
         'description': 'Sultan Kudarat successfully led resistance against Spanish colonization attempts in Mindanao, preserving the independence of Muslim territories.',
         'icon': Icons.security,
-        'image': 'images/philpic.jpg',
+        'image': 'assets/images/zamboangasiege.jpg',
       },
       {
         'title': 'Jabidah Massacre',
         'year': '1968',
         'description': 'A pivotal event where Filipino Muslim trainees were killed in Corregidor, leading to increased Muslim separatism and the formation of the Moro National Liberation Front.',
         'icon': Icons.history_edu,
-        'image': 'images/philpic.jpg',
+        'image': 'assets/images/jabidah.jpg',
       },
     ];
 

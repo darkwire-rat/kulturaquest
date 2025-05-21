@@ -66,7 +66,7 @@ class HeroesScreen extends StatelessWidget {
             _buildHeroCard(
               context: context,
               name: 'Jose Rizal',
-              imagePath: 'images/luzon/jse_rizal.jpg',
+              imagePath: 'assets/images/rizal.jpg',
               subtitle: 'National Hero of the Philippines',
               birth: 'June 19, 1861',
               death: 'December 30, 1896',
@@ -79,7 +79,7 @@ class HeroesScreen extends StatelessWidget {
             _buildHeroCard(
               context: context,
               name: 'Andres Bonifacio',
-              imagePath: 'images/luzon/andres_boni.jpeg',
+              imagePath: 'assets/images/luzon/andres_boni.jpeg',
               subtitle: 'Father of the Philippine Revolution',
               birth: 'November 30, 1863',
               death: 'May 10, 1897',
@@ -92,7 +92,7 @@ class HeroesScreen extends StatelessWidget {
             _buildHeroCard(
               context: context,
               name: 'Antonio Luna',
-              imagePath: 'images/heroes.jpg',
+              imagePath: 'assets/images/luna.jpg',
               subtitle: 'Chief General of the Philippine Revolutionary Army',
               birth: 'October 29, 1866',
               death: 'June 5, 1899',
@@ -105,7 +105,7 @@ class HeroesScreen extends StatelessWidget {
             _buildHeroCard(
               context: context,
               name: 'Apolinario Mabini',
-              imagePath: 'assets/images/philpic.jpeg',
+              imagePath: 'assets/images/mabini.jpg',
               subtitle: 'The Sublime Paralytic',
               birth: 'July 23, 1864',
               death: 'May 13, 1903',
@@ -118,7 +118,7 @@ class HeroesScreen extends StatelessWidget {
             _buildHeroCard(
               context: context,
               name: 'Emilio Jacinto',
-              imagePath: 'assets/images/philpic.jpeg',
+              imagePath: 'assets/images/jacinto.jpg',
               subtitle: 'Brains of the Katipunan',
               birth: 'December 15, 1875',
               death: 'April 16, 1899',

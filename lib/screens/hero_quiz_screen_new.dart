@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import '../services/achievements_service.dart';
-import 'achievements_tab.dart'; // Import for AchievementUpdateController
 
 class HeroQuizScreen extends StatefulWidget {
   final String heroName;
@@ -115,10 +114,6 @@ class _HeroQuizScreenState extends State<HeroQuizScreen> {
           score: achievementScore, // Use the 5-point scale
           completed: newScore >= 80, // Consider completed if score is 80% or higher
         );
-        
-        // Notify the achievements tab that achievements have been updated
-        // This will trigger a refresh of the overall progress
-        AchievementUpdateController.notifyAchievementsUpdated();
         
         setState(() {
           _isNewHighScore = true;
@@ -272,10 +267,31 @@ class _HeroQuizScreenState extends State<HeroQuizScreen> {
       if (widget.heroName == 'Jose Rizal') {
         _answerSelected = true;
         _showCorrectAnswer = true;
-        // No feedback toast during quiz - will show summary at the end
+        
+        // Show feedback toast
+        ScaffoldMessenger.of(context).hideCurrentSnackBar();
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(
+              isCorrect ? 'Correct! 🎉' : 'Incorrect. The correct answer is option ${String.fromCharCode(65 + (_questions[_currentQuestionIndex]['correctIndex'] as int))}',
+            ),
+            backgroundColor: isCorrect ? Colors.green.shade700 : Colors.red.shade700,
+            duration: const Duration(seconds: 2),
+          ),
+        );
       } else {
-        // For other quizzes, proceed as normal without showing feedback
-        // No feedback toast during quiz - will show summary at the end
+        // For other quizzes, proceed as normal
+        // Show feedback toast
+        ScaffoldMessenger.of(context).hideCurrentSnackBar();
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(
+              isCorrect ? 'Correct! 🎉' : 'Incorrect. The correct answer was option ${String.fromCharCode(65 + (_questions[_currentQuestionIndex]['correctIndex'] as int))}',
+            ),
+            backgroundColor: isCorrect ? Colors.green.shade700 : Colors.red.shade700,
+            duration: const Duration(seconds: 1),
+          ),
+        );
       }
     });
   }

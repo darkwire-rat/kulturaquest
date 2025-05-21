@@ -12,12 +12,11 @@ class QuizScoreCalculator {
   static int calculateScore(int correctAnswers, int totalQuestions) {
     // Handle edge cases
     if (totalQuestions <= 0) return 0;
-    if (correctAnswers < 0) return 0; // Changed from <= to < to handle zero correct answers case
+    if (correctAnswers < 0) return 0; // Handle negative scores
+    if (correctAnswers > totalQuestions) correctAnswers = totalQuestions; // Ensure raw score never exceeds total questions
     
-    // Perfect score case - always return exactly 100%
-    if (correctAnswers == totalQuestions) return 100;
-    
-    // Calculate percentage score and round to nearest integer
+    // Calculate raw percentage: (correct answers / total questions) * 100
+    // This is the fundamental formula that should be used consistently across all quizzes
     final percentage = ((correctAnswers / totalQuestions) * 100).round();
     
     // Ensure score never exceeds 100%
@@ -40,12 +39,14 @@ class QuizScoreCalculator {
     // Handle edge cases
     if (totalQuestions <= 0) return 0;
     if (correctAnswers < 0) return 0;
+    if (correctAnswers > totalQuestions) correctAnswers = totalQuestions; // Ensure raw score never exceeds total questions
     
-    // Perfect score case - always return exactly the max achievement score
-    if (correctAnswers == totalQuestions) return maxAchievementScore;
+    // Calculate raw percentage first: (correct answers / total questions)
+    final rawPercentage = correctAnswers / totalQuestions;
     
-    // Calculate proportional score based on the max achievement score
-    final achievementScore = ((correctAnswers / totalQuestions) * maxAchievementScore).round();
+    // Apply the raw percentage to the max achievement score
+    // This ensures the achievement score is directly proportional to the quiz performance
+    final achievementScore = (rawPercentage * maxAchievementScore).round();
     
     // Ensure score never exceeds the maximum
     return achievementScore > maxAchievementScore ? maxAchievementScore : achievementScore;
@@ -113,12 +114,23 @@ class QuizScoreCalculator {
     final Map<String, int> maxCategoryScores = {
       'history': 31,     // 7 points each for 3 regional quizzes + 10 for grand scholar
       'traditions': 31,   // 7 points each for 3 regional quizzes + 10 for grand master
-      'heroes': 35,       // 5 points each for national heroes (15) + 5 for Luna + 15 for heroines
-      'presidents': 30,   // 5 points each for 6 president quizzes (Aguinaldo, Quezon, Magsaysay, Marcos, Aquino, Modern)
+      'heroes': 20,       // 5 points each for national heroes (15) + 5 for Luna + 15 for heroines
+      'presidents': 30,   // 5 points each for early republic (20) + 5 points each for modern era (15) + 5 for contemporary
     };
     
     // Get max score for the category
     final maxScore = maxCategoryScores[categoryId] ?? 100;
+    
+    // For traditions category, we don't cap the raw score to show the actual achievement
+    if (categoryId == 'traditions') {
+      // Calculate precise percentage without capping the raw score
+      return (currentScore / maxScore) * 100;
+    }
+    
+    // For other categories, ensure current score doesn't exceed the maximum
+    if (currentScore > maxScore) {
+      currentScore = maxScore;
+    }
     
     // Calculate percentage with strict capping at 100%
     if (maxScore <= 0) return 0.0;

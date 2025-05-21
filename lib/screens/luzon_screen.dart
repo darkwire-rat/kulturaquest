@@ -118,6 +118,33 @@ class LuzonScreen extends StatelessWidget {
                       ],
                     ),
                   ),
+                  const SizedBox(height: 16),
+                  // Watch Video Button
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 16),
+                    child: ElevatedButton.icon(
+                      onPressed: () async {
+                        // YouTube link for Luzon history
+                        final Uri youtubeUrl = Uri.parse('https://www.youtube.com/watch?v=P-I4Bay5SXo');
+                        try {
+                          await launchUrl(
+                            youtubeUrl,
+                            mode: LaunchMode.platformDefault // Use platform default browser
+                          );
+                        } catch (e) {
+                          print('Error launching YouTube: $e');
+                        }
+                      },
+                      icon: const Icon(Icons.play_circle_filled),
+                      label: const Text('WATCH LUZON HISTORY VIDEO'),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Colors.red,
+                        foregroundColor: Colors.white,
+                        padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 16),
+                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                      ),
+                    ),
+                  ),
                   const SizedBox(height: 24),
                   // Timeline Section
                   Padding(
@@ -427,7 +454,7 @@ class LuzonScreen extends StatelessWidget {
       {
         'name': 'Emilio Aguinaldo',
         'role': 'First President',
-        'image': 'images/luzon/emilio_aguinaldo.jpg',
+        'image': 'assets/images/luzon/emilio_aguinaldo.jpg',
         'desc': 'Led Philippine forces during the Spanish and American wars.'
       },
     ];
@@ -502,9 +529,11 @@ class LuzonScreen extends StatelessWidget {
                     shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                     child: Padding(
                       padding: const EdgeInsets.all(16.0),
-                      child: Column(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
+                      child: SingleChildScrollView(
+                        child: Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
                           Text(
                             person['name'] as String,
                             style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
@@ -526,7 +555,8 @@ class LuzonScreen extends StatelessWidget {
                             },
                             child: const Text('Learn More'),
                           ),
-                        ],
+                          ],
+                        ),
                       ),
                     ),
                   ),
@@ -714,7 +744,6 @@ class LuzonScreen extends StatelessWidget {
   Widget _buildTaalImage(String imagePath) {
     final List<String> taalImages = [
       'images/taal_volcano.jpg',
-      'images/taal_volcano1.jpg',
       'images/taal_volcano2.jpg',
       'images/taal_volcano3.jpg',
       'images/taal_volcano4.jpg',
@@ -760,12 +789,33 @@ class LuzonScreen extends StatelessWidget {
                 width: 300,
                 height: 200,
                 fit: BoxFit.cover,
+                // Pre-cache images to ensure they load immediately when dropdown is opened
+                cacheWidth: 600, // 2x display width for higher quality
+                cacheHeight: 400, // 2x display height for higher quality
                 errorBuilder: (context, error, stackTrace) {
-                  return Container(
+                  print('Error loading image: $imagePath - $error');
+                  // Use philpic.jpg as fallback as per user preference
+                  return Image.asset(
+                    'assets/images/pottery.jpg',
                     width: 300,
                     height: 200,
-                    color: Colors.grey[300],
-                    child: const Icon(Icons.image_not_supported, size: 40, color: Colors.grey),
+                    fit: BoxFit.cover,
+                    errorBuilder: (context, error, stackTrace) {
+                      // If even the fallback fails, show a colored container
+                      return Container(
+                        width: 300,
+                        height: 200,
+                        color: Colors.orange[100],
+                        child: Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            const Icon(Icons.volcano, size: 40, color: Colors.deepOrange),
+                            const SizedBox(height: 8),
+                            const Text('Taal Volcano', style: TextStyle(fontWeight: FontWeight.bold)),
+                          ],
+                        ),
+                      );
+                    },
                   );
                 },
               ),
@@ -1202,6 +1252,8 @@ class LuzonScreen extends StatelessWidget {
             child: ExpansionTile(
               leading: const Icon(Icons.whatshot, color: Colors.deepOrange, size: 32),
               title: Text(fact['title'] as String, style: const TextStyle(fontSize: 15)),
+              initiallyExpanded: false,
+              maintainState: true, // Keep the state when collapsed to avoid reloading images
               children: [
                 Padding(
                   padding: const EdgeInsets.all(16.0),
@@ -1214,12 +1266,12 @@ class LuzonScreen extends StatelessWidget {
                         child: ListView(
                           scrollDirection: Axis.horizontal,
                           children: [
-                            _buildTaalImage('images/philpic.jpg'),
-                            _buildTaalImage('images/philpic.jpg'),
-                            _buildTaalImage('images/philpic.jpg'),
-                            _buildTaalImage('images/philpic.jpg'),
-                            _buildTaalImage('images/philpic.jpg'),
-                            _buildTaalImage('images/philpic.jpg'),
+                            _buildTaalImage('assets/images/taal_volcano.jpg'),
+                            _buildTaalImage('assets/images/taal_volcano2.jpg'),
+                            _buildTaalImage('assets/images/taal_volcano3.jpg'),
+                            _buildTaalImage('assets/images/taal_volcano4.jpg'),
+                            _buildTaalImage('assets/images/taal_volcano5.jpg'),
+                            _buildTaalImage('assets/images/taal_volcano6.jpg'),
                           ],
                         ),
                       ),
@@ -1243,9 +1295,14 @@ class LuzonScreen extends StatelessWidget {
                             // Location
                             GestureDetector(
                               onTap: () async {
-                                final url = Uri.parse('https://www.google.com/maps/place/Taal+Volcano');
-                                if (await canLaunchUrl(url)) {
-                                  await launchUrl(url, mode: LaunchMode.externalApplication);
+                                // Directly open in browser for maximum compatibility
+                                try {
+                                  await launchUrl(
+                                    Uri.parse('https://www.google.com/maps/search/?api=1&query=Taal+Volcano'),
+                                    mode: LaunchMode.platformDefault // Use platform default browser
+                                  );
+                                } catch (e) {
+                                  print('Error launching map in browser: $e');
                                 }
                               },
                               child: Row(
@@ -1272,9 +1329,14 @@ class LuzonScreen extends StatelessWidget {
                             // Coordinates
                             GestureDetector(
                               onTap: () async {
-                                final url = Uri.parse('https://www.google.com/maps/place/14.0111,120.9977');
-                                if (await canLaunchUrl(url)) {
-                                  await launchUrl(url, mode: LaunchMode.externalApplication);
+                                // Directly open in browser for maximum compatibility
+                                try {
+                                  await launchUrl(
+                                    Uri.parse('https://www.google.com/maps/search/?api=1&query=14.0111,120.9977'),
+                                    mode: LaunchMode.platformDefault // Use platform default browser
+                                  );
+                                } catch (e) {
+                                  print('Error launching map in browser: $e');
                                 }
                               },
                               child: Row(

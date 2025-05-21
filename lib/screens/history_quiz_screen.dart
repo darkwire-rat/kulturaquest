@@ -402,12 +402,17 @@ class _HistoryQuizScreenState extends State<HistoryQuizScreen> {
         completionThreshold: 0.8,
       );
       
-      // Update the achievement with current progress
+      // For history quizzes, use the raw score directly (not percentage-based)
+      // Each regional quiz is worth exactly 7 points maximum
+      final rawScore = score;
+      final achievementScore = rawScore > 7 ? 7 : rawScore; // Cap at 7 points but use raw score
+      
+      // Update the achievement with current progress using raw score
       await achievementsService.updateAchievement(
         'history',
         'regional_history',
         achievementId,
-        score: QuizScoreCalculator.calculateAchievementScore(score, questions.length),  // Use the achievement-specific score
+        score: achievementScore,  // Use the raw score (capped at 7)
         completed: isCompleted,
       );
       
@@ -447,8 +452,14 @@ class _HistoryQuizScreenState extends State<HistoryQuizScreen> {
             ),
             const SizedBox(height: 24),
             Text(
-              'Score: $normalizedScore%',
+              'Score: $score/${questions.length} ($normalizedScore%)',
               style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+            ),
+            const SizedBox(height: 8),
+            Text(
+              'Raw score shown as correct answers / total questions',
+              style: TextStyle(fontSize: 12, fontStyle: FontStyle.italic, color: Colors.grey[600]),
+              textAlign: TextAlign.center,
             ),
             const SizedBox(height: 12),
             const Text(
@@ -525,10 +536,11 @@ class _HistoryQuizScreenState extends State<HistoryQuizScreen> {
     
     // Update the specific regional achievement
     if (achievementId != null) {
-      // Use the QuizScoreCalculator to ensure consistent score calculation
-      final normalizedScore = QuizScoreCalculator.calculateScore(score, questions.length);
-      // Use the achievement-specific score calculator to ensure proper achievement progress
-      final achievementScore = QuizScoreCalculator.calculateAchievementScore(score, questions.length, maxAchievementScore: 7); // 7 points for regional quizzes
+      // For history quizzes, we use the raw score directly without normalization
+      final rawScore = score;
+      // For history, we want to use the raw score directly (not percentage-based)
+      // Each regional quiz is worth exactly 7 points maximum
+      final achievementScore = rawScore > 7 ? 7 : rawScore; // Cap at 7 points but use raw score
       final isCompleted = score >= (questions.length * 0.8).round(); // Completed if score is at least 80%
       
       // Get current achievement data to check if we should update
@@ -565,6 +577,9 @@ class _HistoryQuizScreenState extends State<HistoryQuizScreen> {
           userScore: 0,
         ),
       );
+      
+      // Calculate normalized score for comparison
+      final normalizedScore = QuizScoreCalculator.calculateScore(score, questions.length);
       
       // Only update if the new score is better than the existing score or if not completed yet
       if (normalizedScore > (existingAchievement.userScore) || !existingAchievement.isCompleted) {

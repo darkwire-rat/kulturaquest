@@ -35,14 +35,23 @@ class HomeTab extends StatelessWidget {
             ],
           ),
         ),
-        child: Column(
-        children: [
-          const SizedBox(height: 20),
-          // Buttons Row
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-            children: [
-              ElevatedButton(
+        child: Stack(
+          children: [
+            // Map in the center
+            Positioned.fill(
+              child: Center(
+                child: SvgPicture.asset(
+                  'assets/images/philmap.svg',
+                  width: mapWidth,
+                ),
+              ),
+            ),
+            
+            // Luzon button - positioned directly on the blue northern region
+            Positioned(
+              top: MediaQuery.of(context).size.height * 0.31,
+              left: MediaQuery.of(context).size.width * 0.58,
+              child: ElevatedButton(
                 onPressed: () {
                   Navigator.push(
                     context,
@@ -52,19 +61,32 @@ class HomeTab extends StatelessWidget {
                   );
                 },
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: const Color(0xFF8B4513), // Saddle brown
+                  backgroundColor: Colors.blue[700], // Blue for Luzon
                   foregroundColor: Colors.white,
-                  padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
                   shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(8),
-                    side: const BorderSide(color: Color(0xFFD2B48C), width: 2), // Tan border
+                    borderRadius: BorderRadius.circular(20),
+                    side: const BorderSide(color: Colors.white, width: 2),
                   ),
-                  elevation: 4,
-                  shadowColor: const Color(0xFF5F4B32).withOpacity(0.5),
+                  elevation: 6,
+                  shadowColor: Colors.black.withOpacity(0.5),
                 ),
-                child: const Text('Luzon', style: TextStyle(fontWeight: FontWeight.bold)),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    const Text('Luzon', style: TextStyle(fontWeight: FontWeight.bold)),
+                    const SizedBox(width: 4),
+                    Icon(Icons.arrow_back, size: 10),
+                  ],
+                ),
               ),
-              ElevatedButton(
+            ),
+            
+            // Visayas button - positioned above the yellow central region
+            Positioned(
+              top: MediaQuery.of(context).size.height * 0.45,
+              left: MediaQuery.of(context).size.width * 0.30,
+              child: ElevatedButton(
                 onPressed: () {
                   Navigator.push(
                     context,
@@ -74,19 +96,32 @@ class HomeTab extends StatelessWidget {
                   );
                 },
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: const Color(0xFF8B4513), // Saddle brown
+                  backgroundColor: Colors.amber[600], // Yellow/Gold for Visayas
                   foregroundColor: Colors.white,
-                  padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
                   shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(8),
-                    side: const BorderSide(color: Color(0xFFD2B48C), width: 2), // Tan border
+                    borderRadius: BorderRadius.circular(20),
+                    side: const BorderSide(color: Colors.white, width: 2),
                   ),
-                  elevation: 4,
-                  shadowColor: const Color(0xFF5F4B32).withOpacity(0.5),
+                  elevation: 6,
+                  shadowColor: Colors.black.withOpacity(0.5),
                 ),
-                child: const Text('Visayas', style: TextStyle(fontWeight: FontWeight.bold)),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    const Text('Visayas', style: TextStyle(fontWeight: FontWeight.bold)),
+                    const SizedBox(width: 4),
+                    Icon(Icons.arrow_back, size: 10),
+                  ],
+                ),
               ),
-              ElevatedButton(
+            ),
+            
+            // Mindanao button - positioned in the lower part of the red southern region
+            Positioned(
+              top: MediaQuery.of(context).size.height * 0.60,
+              left: MediaQuery.of(context).size.width * 0.39,
+              child: ElevatedButton(
                 onPressed: () {
                   Navigator.push(
                     context,
@@ -96,30 +131,52 @@ class HomeTab extends StatelessWidget {
                   );
                 },
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: const Color(0xFF8B4513), // Saddle brown
+                  backgroundColor: Colors.red[700], // Red for Mindanao
                   foregroundColor: Colors.white,
-                  padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
                   shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(8),
-                    side: const BorderSide(color: Color(0xFFD2B48C), width: 2), // Tan border
+                    borderRadius: BorderRadius.circular(20),
+                    side: const BorderSide(color: Colors.white, width: 2),
                   ),
-                  elevation: 4,
-                  shadowColor: const Color(0xFF5F4B32).withOpacity(0.5),
+                  elevation: 6,
+                  shadowColor: Colors.black.withOpacity(0.5),
                 ),
-                child: const Text('Mindanao', style: TextStyle(fontWeight: FontWeight.bold)),
-              ),
-            ],
-          ),
-          const SizedBox(height: 20),
-          // Map
-          Expanded(
-            child: Center(
-              child: SvgPicture.asset(
-                'assets/images/philmap.svg',
-                width: mapWidth,
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    const Text('Mindanao', style: TextStyle(fontWeight: FontWeight.bold)),
+                    const SizedBox(width: 4),
+                    Icon(Icons.arrow_back, size: 10),
+                  ],
+                ),
               ),
             ),
-          ),
+            
+            // Title at the top
+            Positioned(
+              top: 20,
+              left: 0,
+              right: 0,
+              child: Center(
+                child: Container(
+                  padding: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                  decoration: BoxDecoration(
+                    color: const Color(0xFFF5EFE0).withOpacity(0.8),
+                    borderRadius: BorderRadius.circular(8),
+                    border: Border.all(color: const Color(0xFFD2B48C), width: 2),
+                  ),
+                  child: const Text(
+                    'Explore the Philippine Archipelago',
+                    style: TextStyle(
+                      fontSize: 18,
+                      fontWeight: FontWeight.bold,
+                      color: Color(0xFF5F4B32),
+                      fontFamily: 'Serif',
+                    ),
+                  ),
+                ),
+              ),
+            ),
         ],
       ),
     ));

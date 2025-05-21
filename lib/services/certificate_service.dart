@@ -3,6 +3,7 @@ import 'package:flutter/services.dart';
 import 'package:pdf/pdf.dart';
 import 'package:pdf/widgets.dart' as pw;
 import '../models/achievement_models.dart';
+import '../utils/quiz_score_calculator.dart';
 
 class CertificateService {
   /// Generates a PDF certificate with a summary of achievements
@@ -18,17 +19,40 @@ class CertificateService {
     // Calculate achievement statistics
     int totalCompletedAchievements = 0;
     int totalAchievements = 0;
+    Map<String, int> categoryScores = {};
     
+    // Calculate total achievements and completed achievements
     for (final cluster in clusters) {
+      int clusterScore = 0;
+      
       for (final subcat in cluster.subcategories) {
         totalAchievements += subcat.achievements.length;
         totalCompletedAchievements += subcat.achievements.where((a) => a.isCompleted).length;
+        
+        // Sum up the actual scores for each category
+        for (final achievement in subcat.achievements) {
+          clusterScore += achievement.userScore;
+        }
       }
+      
+      // Store the total score for each category
+      categoryScores[cluster.id] = clusterScore;
     }
     
-    final achievementPercentage = totalAchievements > 0 
-        ? ((totalCompletedAchievements / totalAchievements) * 100).toStringAsFixed(1) 
-        : "0.0";
+    // Calculate overall percentage using the same method as in the app
+    double overallPercentage = 0.0;
+    int categoryCount = categoryScores.length;
+    
+    if (categoryCount > 0) {
+      double sum = 0.0;
+      categoryScores.forEach((categoryId, score) {
+        // Use the same calculation method as in the app
+        sum += QuizScoreCalculator.calculateCategoryPercentage(categoryId, score);
+      });
+      overallPercentage = sum / categoryCount;
+    }
+    
+    final achievementPercentage = overallPercentage.toStringAsFixed(1);
     
     // Add a page to the PDF document
     pdf.addPage(
@@ -123,15 +147,22 @@ class CertificateService {
                     ...clusters.map((cluster) {
                       int categoryCompleted = 0;
                       int categoryTotal = 0;
+                      int categoryScore = 0;
                       
                       for (final subcat in cluster.subcategories) {
                         categoryTotal += subcat.achievements.length;
                         categoryCompleted += subcat.achievements.where((a) => a.isCompleted).length;
+                        
+                        // Sum up the actual scores for each achievement
+                        for (final achievement in subcat.achievements) {
+                          categoryScore += achievement.userScore;
+                        }
                       }
                       
-                      final categoryPercentage = categoryTotal > 0 
-                          ? ((categoryCompleted / categoryTotal) * 100).toStringAsFixed(1) 
-                          : "0.0";
+                      // Use the QuizScoreCalculator for consistent percentage calculation
+                      final double categoryPercentageValue = 
+                          QuizScoreCalculator.calculateCategoryPercentage(cluster.id, categoryScore);
+                      final categoryPercentage = categoryPercentageValue.toStringAsFixed(1);
                       
                       return pw.Padding(
                         padding: pw.EdgeInsets.only(top: 8),

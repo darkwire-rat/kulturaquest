@@ -740,10 +740,12 @@ class _PresidentQuizScreenState extends State<PresidentQuizScreen> {
 
   Widget _buildResultScreen() {
     // Calculate percentage based on correct answers for determining message and colors
+    // Ensure we're using the raw score calculation: (correct answers / total questions) * 100
     final double percentage = (_score / _questions.length) * 100;
     final bool isPerfectScore = _score == _questions.length;
     
-    return Center(
+    return SingleChildScrollView(
+      physics: const BouncingScrollPhysics(),
       child: Padding(
         padding: const EdgeInsets.all(24.0),
         child: Column(

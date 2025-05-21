@@ -39,16 +39,38 @@ class VisayasScreen extends StatelessWidget {
                     child: Stack(
                       fit: StackFit.expand,
                       children: [
-                        // Background image - using philpic.jpg as preferred by the user
+                        // Background image - Bohol Chocolate Hills
                         Image.asset(
-                          'images/philpic.jpg',
+                          'assets/images/visayas_cover.jpg',
                           fit: BoxFit.cover,
                           errorBuilder: (context, error, stackTrace) {
-                            return Container(
-                              color: Colors.green[200],
-                              child: Center(
-                                child: Icon(Icons.image_not_supported, size: 50, color: Colors.green[800]),
-                              ),
+                            // Fallback to another Bohol image
+                            return Image.asset(
+                              'assets/images/tarsier.jpg',
+                              fit: BoxFit.cover,
+                              errorBuilder: (context, error, stackTrace) {
+                                // Second fallback to pottery image as per user preference
+                                return Image.asset(
+                                  'assets/images/pottery.jpg',
+                                  fit: BoxFit.cover,
+                                  errorBuilder: (context, error, stackTrace) {
+                                    // Final fallback if all images fail
+                                    return Container(
+                                      color: Colors.green[200],
+                                      child: Center(
+                                        child: Column(
+                                          mainAxisAlignment: MainAxisAlignment.center,
+                                          children: [
+                                            Icon(Icons.landscape, size: 50, color: Colors.green[800]),
+                                            const SizedBox(height: 8),
+                                            const Text('Visayas', style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold, color: Colors.white)),
+                                          ],
+                                        ),
+                                      ),
+                                    );
+                                  },
+                                );
+                              },
                             );
                           },
                         ),
@@ -90,7 +112,7 @@ class VisayasScreen extends StatelessWidget {
                               ),
                               const SizedBox(height: 8),
                               Text(
-                                'Explore the rich cultural tapestry of the central islands',
+                                'Home to Visayas - Land of natural wonders',
                                 style: TextStyle(
                                   fontSize: 16,
                                   color: Colors.white,
@@ -340,7 +362,7 @@ class VisayasScreen extends StatelessWidget {
                   child: FlipCard(
                     direction: FlipDirection.HORIZONTAL,
                     front: _buildCardFront(
-                      imagePath: 'images/philpic.jpg',
+                      imagePath: 'assets/images/sinu.jpg',
                       title: 'Sinulog',
                     ),
                     back: _buildCardBack(
@@ -359,7 +381,7 @@ class VisayasScreen extends StatelessWidget {
                   child: FlipCard(
                     direction: FlipDirection.HORIZONTAL,
                     front: _buildCardFront(
-                      imagePath: 'images/philpic.jpg',
+                      imagePath: 'assets/images/kurat.jpg',
                       title: 'Kuratsa',
                     ),
                     back: _buildCardBack(
@@ -378,7 +400,7 @@ class VisayasScreen extends StatelessWidget {
                   child: FlipCard(
                     direction: FlipDirection.HORIZONTAL,
                     front: _buildCardFront(
-                      imagePath: 'images/philpic.jpg',
+                      imagePath: 'assets/images/ati.jpg',
                       title: 'Ati-Atihan',
                     ),
                     back: _buildCardBack(
@@ -415,7 +437,7 @@ class VisayasScreen extends StatelessWidget {
                   child: FlipCard(
                     direction: FlipDirection.HORIZONTAL,
                     front: _buildCardFront(
-                      imagePath: 'images/philpic.jpg',
+                      imagePath: 'assets/images/hablon.jpg',
                       title: 'Hablon Weaving',
                     ),
                     back: _buildCardBack(
@@ -434,7 +456,7 @@ class VisayasScreen extends StatelessWidget {
                   child: FlipCard(
                     direction: FlipDirection.HORIZONTAL,
                     front: _buildCardFront(
-                      imagePath: 'images/philpic.jpg',
+                      imagePath: 'assets/images/pot.jpeg',
                       title: 'Bohol Pottery',
                     ),
                     back: _buildCardBack(
@@ -453,7 +475,7 @@ class VisayasScreen extends StatelessWidget {
                   child: FlipCard(
                     direction: FlipDirection.HORIZONTAL,
                     front: _buildCardFront(
-                      imagePath: 'images/philpic.jpg',
+                      imagePath: 'assets/images/pandan.jpg',
                       title: 'Pandan Weaving',
                     ),
                     back: _buildCardBack(
@@ -527,19 +549,19 @@ class VisayasScreen extends StatelessWidget {
       {
         'name': 'Lapu-Lapu',
         'role': 'Warrior Chieftain',
-        'image': 'images/philpic.jpg',
+        'image': 'assets/images/lapu_lapu.jpeg',
         'desc': 'Chieftain of Mactan who led the victory against Ferdinand Magellan in 1521.'
       },
       {
         'name': 'Graciano López Jaena',
         'role': 'Journalist & Reformist',
-        'image': 'images/philpic.jpg',
+        'image': 'assets/images/graciano.jpg',
         'desc': 'Founder of La Solidaridad newspaper and prominent figure in the Propaganda Movement.'
       },
       {
         'name': 'Pantaleon Villegas',
         'role': 'Revolutionary Leader',
-        'image': 'images/philpic.jpg',
+        'image': 'assets/images/villegas.jpeg',
         'desc': 'Known as "León Kilat", led the Cebuano revolution against Spanish rule.'
       },
     ];
@@ -553,7 +575,7 @@ class VisayasScreen extends StatelessWidget {
         ),
         const SizedBox(height: 16),
         Container(
-          height: 220,
+          height: 230,
           child: ListView.builder(
             scrollDirection: Axis.horizontal,
             itemCount: personalities.length,
@@ -702,6 +724,13 @@ class VisayasScreen extends StatelessWidget {
         'type': 'landmark',
       },
       {
+        'title': 'Bohol is famous for its traditional pottery craftsmanship',
+        'context': 'The island of Bohol is renowned for its traditional pottery, with techniques passed down through generations. Bohol pottery is characterized by its earthy tones, intricate designs, and functional yet artistic forms. The pottery-making villages in Bohol continue to preserve this ancient craft using local clay and traditional firing methods.',
+        'resource': 'https://ncca.gov.ph/about-culture-and-arts/culture-profile/traditional-crafts/',
+        'resourceLabel': 'National Commission for Culture and the Arts',
+        'type': 'pottery',
+      },
+      {
         'title': 'Cebu is home to the oldest street in the Philippines',
         'context': 'Colon Street in Cebu City is considered the oldest street in the Philippines, established in 1565 by Miguel López de Legazpi as part of the first Spanish settlement in the country.',
         'resource': 'https://www.cebucity.gov.ph/history',
@@ -720,29 +749,42 @@ class VisayasScreen extends StatelessWidget {
     return Column(
       children: facts.map((fact) {
         // Special case for landmark fact
-        if (fact['type'] == 'landmark') {
+        if (fact['type'] == 'landmark' || fact['type'] == 'pottery') {
           return Card(
             margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
-            color: Colors.green[50],
+            color: fact['type'] == 'pottery' ? Colors.orange[50] : Colors.green[50],
             elevation: 2,
             child: ExpansionTile(
-              leading: const Icon(Icons.landscape, color: Colors.green, size: 32),
+              leading: Icon(
+                fact['type'] == 'pottery' ? Icons.brush : Icons.landscape,
+                color: fact['type'] == 'pottery' ? Colors.brown : Colors.green,
+                size: 32
+              ),
               title: Text(fact['title'] as String, style: const TextStyle(fontSize: 15)),
+              maintainState: true, // Keep the state when collapsed to avoid reloading images
               children: [
                 Padding(
                   padding: const EdgeInsets.all(16.0),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      // Image Gallery for Chocolate Hills
+                      // Image Gallery - different images based on fact type
                       SizedBox(
                         height: 200,
                         child: ListView(
                           scrollDirection: Axis.horizontal,
-                          children: [
-                            _buildVisayasImage('images/philpic.jpg'),
-                            _buildVisayasImage('images/philpic.jpg'),
-                            _buildVisayasImage('images/philpic.jpg'),
+                          children: fact['type'] == 'pottery' ? [
+                            // Bohol pottery images
+                            _buildVisayasImage('assets/images/pottery.jpg'),
+                            _buildVisayasImage('assets/images/pottery1.jpeg'),
+                            _buildVisayasImage('assets/images/pottery2.jpeg'),
+                            _buildVisayasImage('assets/images/pottery3.jpeg'),
+                            _buildVisayasImage('assets/images/pottery4.jpeg'),
+                          ] : [
+                            // Chocolate Hills images
+                            _buildVisayasImage('assets/images/chills1.jpeg'),
+                            _buildVisayasImage('assets/images/chills2.jpeg'),
+                            _buildVisayasImage('assets/images/chills3.jpeg'),
                           ],
                         ),
                       ),
@@ -755,7 +797,7 @@ class VisayasScreen extends StatelessWidget {
                         width: double.infinity,
                         padding: const EdgeInsets.all(12),
                         decoration: BoxDecoration(
-                          color: Colors.green[100],
+                          color: fact['type'] == 'pottery' ? Colors.orange[100] : Colors.green[100],
                           borderRadius: BorderRadius.circular(8),
                         ),
                         child: Column(
@@ -766,7 +808,9 @@ class VisayasScreen extends StatelessWidget {
                             // Location
                             GestureDetector(
                               onTap: () async {
-                                final url = Uri.parse('https://www.google.com/maps/place/Chocolate+Hills');
+                                final url = Uri.parse(fact['type'] == 'pottery' 
+                                  ? 'https://www.google.com/maps/place/Calape,+Bohol'
+                                  : 'https://www.google.com/maps/place/Chocolate+Hills');
                                 if (await canLaunchUrl(url)) {
                                   await launchUrl(url, mode: LaunchMode.externalApplication);
                                 }
@@ -782,7 +826,9 @@ class VisayasScreen extends StatelessWidget {
                                         const Text('Location:', style: TextStyle(fontWeight: FontWeight.bold)),
                                         const SizedBox(height: 2),
                                         Text(
-                                          'Carmen, Bohol, Philippines',
+                                          fact['type'] == 'pottery' 
+                                            ? 'Calape, Bohol, Philippines'
+                                            : 'Carmen, Bohol, Philippines',
                                           style: TextStyle(decoration: TextDecoration.underline, color: Colors.blue[800]),
                                         ),
                                       ],
@@ -795,7 +841,9 @@ class VisayasScreen extends StatelessWidget {
                             // Coordinates
                             GestureDetector(
                               onTap: () async {
-                                final url = Uri.parse('https://www.google.com/maps/place/9.8312,124.1387');
+                                final url = Uri.parse(fact['type'] == 'pottery'
+                                  ? 'https://www.google.com/maps/place/9.8867,123.8867'
+                                  : 'https://www.google.com/maps/place/9.8312,124.1387');
                                 if (await canLaunchUrl(url)) {
                                   await launchUrl(url, mode: LaunchMode.externalApplication);
                                 }
@@ -811,7 +859,9 @@ class VisayasScreen extends StatelessWidget {
                                         const Text('Coordinates:', style: TextStyle(fontWeight: FontWeight.bold)),
                                         const SizedBox(height: 2),
                                         Text(
-                                          '9.8312° N, 124.1387° E',
+                                          fact['type'] == 'pottery'
+                                            ? '9.8867° N, 123.8867° E'
+                                            : '9.8312° N, 124.1387° E',
                                           style: TextStyle(decoration: TextDecoration.underline, color: Colors.blue[800]),
                                         ),
                                       ],
@@ -890,28 +940,28 @@ class VisayasScreen extends StatelessWidget {
         'year': '1521',
         'description': 'Lapu-Lapu and his warriors defeated Ferdinand Magellan and his Spanish forces at Mactan Island, marking the first successful resistance against European colonizers.',
         'icon': Icons.military_tech,
-        'image': 'images/philpic.jpg',
+        'image': 'assets/images/battle_of_mactan.jpeg',
       },
       {
         'title': 'Dagohoy Rebellion',
         'year': '1744-1829',
         'description': 'Led by Francisco Dagohoy in Bohol, this was the longest revolt against Spanish colonial rule, lasting for 85 years.',
         'icon': Icons.whatshot,
-        'image': 'images/philpic.jpg',
+        'image': 'assets/images/dagohoy_rebellion.jpeg',
       },
       {
         'title': 'Cebu as First Capital',
         'year': '1565',
         'description': 'Cebu became the first Spanish settlement and capital in the Philippines when Miguel López de Legazpi established a colony there.',
         'icon': Icons.location_city,
-        'image': 'images/philpic.jpg',
+        'image': 'assets/images/cebu_first_capital.jpeg',
       },
       {
         'title': 'Leyte Gulf Landing',
         'year': '1944',
         'description': 'General Douglas MacArthur fulfilled his promise to return to the Philippines by landing at Leyte Gulf, beginning the liberation of the Philippines from Japanese occupation.',
         'icon': Icons.sailing,
-        'image': 'images/philpic.jpg',
+        'image': 'assets/images/leyte_gulf_landing.jpeg',
       },
     ];
 
@@ -1280,30 +1330,56 @@ class VisayasScreen extends StatelessWidget {
         onTap: () {
           // Implement full-screen image view if needed
         },
-        child: ClipRRect(
-          borderRadius: BorderRadius.circular(8),
-          child: Image.asset(
-            imagePath,
-            width: 280,
-            height: 200,
-            fit: BoxFit.cover,
-            errorBuilder: (context, error, stackTrace) {
-              return Container(
-                width: 280,
-                height: 200,
-                color: Colors.green[100],
-                child: Center(
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Icon(Icons.image, size: 50, color: Colors.green[800]),
-                      const SizedBox(height: 8),
-                      const Text('Image not available', style: TextStyle(color: Colors.green)),
-                    ],
-                  ),
-                ),
-              );
-            },
+        child: Container(
+          width: 280,
+          height: 200,
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(8),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withOpacity(0.2),
+                blurRadius: 4,
+                offset: const Offset(2, 2),
+              ),
+            ],
+          ),
+          child: ClipRRect(
+            borderRadius: BorderRadius.circular(8),
+            child: Image.asset(
+              imagePath,
+              width: 280,
+              height: 200,
+              fit: BoxFit.cover,
+              // Pre-cache images to ensure they load immediately when dropdown is opened
+              cacheWidth: 560, // 2x display width for higher quality
+              cacheHeight: 400, // 2x display height for higher quality
+              errorBuilder: (context, error, stackTrace) {
+                print('Error loading image: $imagePath - $error');
+                // Use pottery.jpg as fallback as per user preference
+                return Image.asset(
+                  'assets/images/pottery.jpg',
+                  width: 280,
+                  height: 200,
+                  fit: BoxFit.cover,
+                  errorBuilder: (context, error, stackTrace) {
+                    // If even the fallback fails, show a colored container
+                    return Container(
+                      width: 280,
+                      height: 200,
+                      color: Colors.green[100],
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Icon(Icons.image, size: 40, color: Colors.green[800]),
+                          const SizedBox(height: 8),
+                          const Text('Bohol Pottery', style: TextStyle(fontWeight: FontWeight.bold)),
+                        ],
+                      ),
+                    );
+                  },
+                );
+              },
+            ),
           ),
         ),
       ),

@@ -52,17 +52,29 @@ class LanguageSelectionScreen extends StatelessWidget {
               ),
               const SizedBox(height: 40),
 
-              // English Button
-              ElevatedButton(
-                onPressed: () => _handleLanguageSelection(context),
-                child: const Text('English'),
-              ),
-              const SizedBox(height: 10),
-
-              // Tagalog Button
-              ElevatedButton(
-                onPressed: () => _handleLanguageSelection(context),
-                child: const Text('Tagalog'),
+              // START Button
+              SizedBox(
+                width: double.infinity,
+                height: 50,
+                child: ElevatedButton(
+                  onPressed: () => _handleLanguageSelection(context),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.orange[700],
+                    foregroundColor: Colors.white,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    elevation: 4,
+                  ),
+                  child: const Text(
+                    'START',
+                    style: TextStyle(
+                      fontSize: 18,
+                      fontWeight: FontWeight.bold,
+                      letterSpacing: 1.2,
+                    ),
+                  ),
+                ),
               ),
               const SizedBox(height: 20),
               

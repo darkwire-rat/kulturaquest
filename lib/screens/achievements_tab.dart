@@ -42,6 +42,29 @@ class _AchievementsTabState extends State<AchievementsTab> with TickerProviderSt
   late TabController _tabController;
   late StreamSubscription<void> _achievementUpdateSubscription;
 
+  // Calculate the total score across all categories
+  int _calculateTotalScore() {
+    int totalScore = 0;
+    for (final cluster in _clusters) {
+      // Skip the overall_progress cluster
+      if (cluster.id == 'overall_progress') continue;
+      
+      // Add up scores from each category
+      totalScore += OverallProgressCalculator.getCategoryRawScore(_clusters, cluster.id);
+    }
+    return totalScore;
+  }
+
+  // Calculate the total maximum possible score across all categories
+  int _calculateTotalMaxScore() {
+    int totalMaxScore = 0;
+    // Add up all the max scores from the defined categories
+    OverallProgressCalculator.maxCategoryScores.forEach((key, value) {
+      totalMaxScore += value;
+    });
+    return totalMaxScore;
+  }
+
   @override
   void initState() {
     super.initState();
@@ -218,23 +241,56 @@ class _AchievementsTabState extends State<AchievementsTab> with TickerProviderSt
   }
 
   Widget _buildClusterHeader(AchievementCluster cluster) {
-    // Calculate overall progress based on all 4 categories
+    // Calculate progress based on category-specific calculations
     double completionPercentage;
     String displayPercentage;
+    int totalScore;
+    int maxScore;
     
+    // Use category-specific calculation methods for more accurate display
     if (cluster.id == 'overall_progress') {
-      // For the overall progress, use the new calculator
-      double rawPercentage = OverallProgressCalculator.calculateOverallProgressPercentage(_clusters).toDouble();
+      // For the overall progress, use the overall calculator
+      double rawPercentage = OverallProgressCalculator.calculateOverallProgressPercentage(_clusters);
       completionPercentage = rawPercentage / 100;
       displayPercentage = rawPercentage.toStringAsFixed(1) + '%';
+      totalScore = _calculateTotalScore();
+      maxScore = _calculateTotalMaxScore();
+    } else if (cluster.id == 'history') {
+      // For history category, use the history-specific calculator
+      double rawPercentage = OverallProgressCalculator.calculateHistoryProgress(_clusters) * 100;
+      completionPercentage = rawPercentage / 100;
+      displayPercentage = rawPercentage.toStringAsFixed(1) + '%';
+      totalScore = OverallProgressCalculator.getCategoryRawScore(_clusters, 'history');
+      maxScore = OverallProgressCalculator.maxCategoryScores['history'] ?? 31;
+    } else if (cluster.id == 'traditions') {
+      // For traditions category, use the traditions-specific calculator
+      // For traditions, we don't cap the raw score to show the actual achievement
+      double rawPercentage = OverallProgressCalculator.calculateTraditionsProgress(_clusters) * 100;
+      completionPercentage = rawPercentage / 100;
+      displayPercentage = rawPercentage.toStringAsFixed(1) + '%';
+      totalScore = OverallProgressCalculator.getCategoryRawScore(_clusters, 'traditions');
+      maxScore = OverallProgressCalculator.maxCategoryScores['traditions'] ?? 31;
+    } else if (cluster.id == 'heroes') {
+      // For heroes category, use the heroes-specific calculator
+      double rawPercentage = OverallProgressCalculator.calculateHeroesProgress(_clusters) * 100;
+      completionPercentage = rawPercentage / 100;
+      displayPercentage = rawPercentage.toStringAsFixed(1) + '%';
+      totalScore = OverallProgressCalculator.getCategoryRawScore(_clusters, 'heroes');
+      maxScore = OverallProgressCalculator.maxCategoryScores['heroes'] ?? 35;
+    } else if (cluster.id == 'presidents') {
+      // For presidents category, use the presidents-specific calculator
+      double rawPercentage = OverallProgressCalculator.calculatePresidentsProgress(_clusters) * 100;
+      completionPercentage = rawPercentage / 100;
+      displayPercentage = rawPercentage.toStringAsFixed(1) + '%';
+      totalScore = OverallProgressCalculator.getCategoryRawScore(_clusters, 'presidents');
+      maxScore = OverallProgressCalculator.maxCategoryScores['presidents'] ?? 40;
     } else {
-      // For individual categories, cap at 100% but keep precision
+      // Fallback for any other categories
       completionPercentage = cluster.completionPercentage > 1.0 ? 1.0 : cluster.completionPercentage;
-      // Format with 1 decimal place for more precision
       displayPercentage = (completionPercentage * 100).toStringAsFixed(1) + '%';
+      totalScore = cluster.totalScore;
+      maxScore = cluster.maxPossibleScore;
     }
-    final totalScore = cluster.totalScore;
-    final maxScore = cluster.maxPossibleScore;
     
     return Card(
       elevation: 4,
@@ -453,7 +509,8 @@ class _AchievementsTabState extends State<AchievementsTab> with TickerProviderSt
                 crossAxisAlignment: CrossAxisAlignment.end,
                 children: [
                   Text(
-                    '${achievement.userScore}/${achievement.maxScore}',
+                    // Ensure user score never exceeds max score
+                    '${achievement.userScore > achievement.maxScore ? achievement.maxScore : achievement.userScore}/${achievement.maxScore}',
                     style: TextStyle(
                       fontSize: 16,
                       fontWeight: FontWeight.bold,
@@ -471,7 +528,8 @@ class _AchievementsTabState extends State<AchievementsTab> with TickerProviderSt
                       ),
                       const SizedBox(width: 2),
                       Text(
-                        '${(achievement.userScore / achievement.maxScore * 100).round()}%',
+                        // Ensure percentage never exceeds 100%
+                        '${QuizScoreCalculator.capPercentage((achievement.userScore / achievement.maxScore * 100).round())}%',
                         style: TextStyle(
                           fontSize: 12,
                           color: achievement.isCompleted ? Colors.amber : Colors.grey[500],
@@ -581,134 +639,132 @@ class _AchievementDetailsSheet extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.all(24),
-      decoration: BoxDecoration(
-        gradient: LinearGradient(
-          begin: Alignment.topCenter,
-          end: Alignment.bottomCenter,
-          colors: [
-            Colors.orange.shade50,
-            Colors.white,
-          ],
-        ),
-        borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.2),
-            blurRadius: 10,
-            spreadRadius: 2,
-            offset: const Offset(0, -3),
-          ),
-        ],
-        border: Border.all(color: Colors.orange.shade200, width: 1),
-      ),
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          // Header
-          Row(
-            children: [
-              CircleAvatar(
-                radius: 24,
-                backgroundColor: achievement.isCompleted ? cluster.color : Colors.grey[300],
-                child: Icon(
-                  achievement.isCompleted ? Icons.emoji_events : Icons.hourglass_empty,
-                  color: Colors.white,
-                  size: 24,
-                ),
+    return DraggableScrollableSheet(
+      initialChildSize: 0.8,
+      minChildSize: 0.5,
+      maxChildSize: 0.95,
+      expand: false,
+      builder: (context, scrollController) {
+        return Container(
+          padding: const EdgeInsets.all(24),
+          decoration: BoxDecoration(
+            gradient: LinearGradient(
+              begin: Alignment.topCenter,
+              end: Alignment.bottomCenter,
+              colors: [
+                Colors.orange.shade50,
+                Colors.white,
+              ],
+            ),
+            borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withOpacity(0.2),
+                blurRadius: 10,
+                spreadRadius: 2,
+                offset: const Offset(0, -3),
               ),
-              const SizedBox(width: 16),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
+            ],
+            border: Border.all(color: Colors.orange.shade200, width: 1),
+          ),
+          child: SingleChildScrollView(
+            controller: scrollController,
+            physics: const BouncingScrollPhysics(),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
                   children: [
-                    Text(
-                      achievement.title,
-                      style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+                    CircleAvatar(
+                      radius: 24,
+                      backgroundColor: achievement.isCompleted ? cluster.color : Colors.grey[300],
+                      child: Icon(
+                        achievement.isCompleted ? Icons.emoji_events : Icons.hourglass_empty,
+                        color: Colors.white,
+                        size: 24,
+                      ),
                     ),
-                    Text(
-                      subcategory.title,
-                      style: TextStyle(fontSize: 16, color: cluster.color),
+                    const SizedBox(width: 16),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            achievement.title,
+                            style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+                          ),
+                          Text(
+                            subcategory.title,
+                            style: TextStyle(fontSize: 16, color: cluster.color),
+                          ),
+                        ],
+                      ),
+                    ),
+                    IconButton(
+                      icon: const Icon(Icons.close),
+                      onPressed: () => Navigator.of(context).pop(),
                     ),
                   ],
                 ),
-              ),
-              // Close button
-              IconButton(
-                icon: const Icon(Icons.close),
-                onPressed: () => Navigator.of(context).pop(),
-              ),
-            ],
-          ),
-          const SizedBox(height: 24),
-          
-          // Description
-          const Text('Description', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
-          const SizedBox(height: 8),
-          Text(achievement.description, style: const TextStyle(fontSize: 16)),
-          const SizedBox(height: 24),
-          
-          // Progress
-          const Text('Progress', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
-          const SizedBox(height: 8),
-          LinearProgressIndicator(
-            value: achievement.userScore / achievement.maxScore,
-            minHeight: 12,
-            backgroundColor: Colors.grey[200],
-            valueColor: AlwaysStoppedAnimation<Color>(cluster.color),
-          ),
-          const SizedBox(height: 8),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Text(
-                '${(achievement.userScore / achievement.maxScore * 100).round()}% Complete',
-                style: const TextStyle(fontSize: 14),
-              ),
-              Text(
-                '${achievement.userScore}/${achievement.maxScore} Points',
-                style: const TextStyle(fontSize: 14, fontWeight: FontWeight.bold),
-              ),
-            ],
-          ),
-          const SizedBox(height: 24),
-          
-          // Action button
-          SizedBox(
-            width: double.infinity,
-            child: ElevatedButton.icon(
-              icon: Icon(achievement.isCompleted ? Icons.check_circle : Icons.play_arrow),
-              label: Text(achievement.isCompleted ? 'Completed' : 'Start Challenge'),
-              style: ElevatedButton.styleFrom(
-                backgroundColor: achievement.isCompleted ? Colors.green : cluster.color,
-                foregroundColor: Colors.white,
-                padding: const EdgeInsets.symmetric(vertical: 14),
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-              ),
-              onPressed: achievement.isCompleted
-                  ? null
-                  : () {
-                      // Navigate to the challenge
-                      Navigator.of(context).pop();
-                      
-                      // Show loading indicator
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(content: Text('Starting challenge...')),
-                      );
-                      
-                      // Handle navigation based on achievement type
-                      _navigateToChallenge(context, cluster, subcategory, achievement);
-                    },
+                const SizedBox(height: 24),
+                const Text('Description', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+                const SizedBox(height: 8),
+                Text(achievement.description, style: const TextStyle(fontSize: 16)),
+                const SizedBox(height: 24),
+                const Text('Progress', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+                const SizedBox(height: 8),
+                LinearProgressIndicator(
+                  value: achievement.userScore / achievement.maxScore,
+                  minHeight: 12,
+                  backgroundColor: Colors.grey[200],
+                  valueColor: AlwaysStoppedAnimation<Color>(cluster.color),
+                ),
+                const SizedBox(height: 8),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Text(
+                      '${(achievement.userScore / achievement.maxScore * 100).round()}% Complete',
+                      style: const TextStyle(fontSize: 14),
+                    ),
+                    Text(
+                      '${achievement.userScore}/${achievement.maxScore} Points',
+                      style: const TextStyle(fontSize: 14, fontWeight: FontWeight.bold),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 24),
+                SizedBox(
+                  width: double.infinity,
+                  child: ElevatedButton.icon(
+                    icon: Icon(achievement.isCompleted ? Icons.check_circle : Icons.play_arrow),
+                    label: Text(achievement.isCompleted ? 'Completed' : 'Start Challenge'),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: achievement.isCompleted ? Colors.green : cluster.color,
+                      foregroundColor: Colors.white,
+                      padding: const EdgeInsets.symmetric(vertical: 14),
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                    ),
+                    onPressed: achievement.isCompleted
+                        ? null
+                        : () {
+                            Navigator.of(context).pop();
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              const SnackBar(content: Text('Starting challenge...')),
+                            );
+                            _navigateToChallenge(context, cluster, subcategory, achievement);
+                          },
+                  ),
+                ),
+              ],
             ),
           ),
-        ],
-      ),
+        );
+      },
     );
   }
   
-  // Navigate to the appropriate challenge based on achievement ID
   void _navigateToChallenge(BuildContext context, AchievementCluster cluster, AchievementSubcategory subcategory, Achievement achievement) {
     // Determine which screen to navigate to based on the cluster, subcategory, and achievement IDs
     if (cluster.id == 'heroes') {
@@ -744,9 +800,11 @@ class _AchievementDetailsSheet extends StatelessWidget {
       final presidentMap = {
         'aguinaldo_quiz': {'name': 'Emilio Aguinaldo', 'quizTitle': 'Emilio Aguinaldo Quiz'},
         'quezon_quiz': {'name': 'Manuel L. Quezon', 'quizTitle': 'Manuel L. Quezon Quiz'},
+        'roxas_quiz': {'name': 'Manuel Roxas', 'quizTitle': 'Manuel Roxas Quiz'},
         'magsaysay_quiz': {'name': 'Ramon Magsaysay', 'quizTitle': 'Ramon Magsaysay Quiz'},
         'marcos_quiz': {'name': 'Ferdinand Marcos', 'quizTitle': 'Ferdinand Marcos Quiz'},
         'aquino_quiz': {'name': 'Corazon Aquino', 'quizTitle': 'Corazon Aquino Quiz'},
+        'ramos_quiz': {'name': 'Fidel V. Ramos', 'quizTitle': 'Fidel V. Ramos Quiz'},
         'modern_presidents_quiz': {'name': 'Modern Presidents', 'quizTitle': 'Modern Presidents Scholar'},
       };
       
@@ -808,13 +866,12 @@ class _AchievementDetailsSheet extends StatelessWidget {
             ),
           );
         }
-      } else if (subcategory.id == 'festivals') {
-        Navigator.of(context).pushNamed('/festivals');
-      } else if (subcategory.id == 'customs') {
-        Navigator.of(context).pushNamed('/customs');
       } else {
         // Default traditions screen
         Navigator.of(context).pushNamed('/traditions');
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('This challenge is not available yet')),
+        );
       }
     } else if (cluster.id == 'history') {
       // Navigate to history page based on subcategory and achievement
@@ -856,18 +913,18 @@ class _AchievementDetailsSheet extends StatelessWidget {
             ),
           );
         }
-      } else if (subcategory.id == 'historical_periods') {
-        // For now, navigate to general history page
-        Navigator.of(context).pushNamed('/history');
       } else {
         // Default history screen
         Navigator.of(context).pushNamed('/history');
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('This challenge is not available yet')),
+        );
       }
     } else {
       // If no specific navigation is defined, show a message
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('This challenge is not available yet.')),
+        const SnackBar(content: Text('This challenge is not available yet')),
       );
     }
   }
-}
+} // <-- this closes the entire _AchievementDetailsSheet class
